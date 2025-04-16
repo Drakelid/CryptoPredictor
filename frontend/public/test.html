@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c5282;
+        }
+        .card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #2c5282;
+        }
+        .button {
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #3182ce;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+        .tab.active {
+            border-bottom: 2px solid #4299e1;
+            color: #4299e1;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Data Management</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="openTab(event, 'fetch')">Fetch Data</div>
+            <div class="tab" onclick="openTab(event, 'upload')">Upload Data</div>
+            <div class="tab" onclick="openTab(event, 'available')">Available Data</div>
+        </div>
+        
+        <div id="fetch" class="tab-content active">
+            <div class="card">
+                <h2>Fetch Cryptocurrency Data</h2>
+                <div>
+                    <label for="crypto">Cryptocurrency:</label>
+                    <select id="crypto">
+                        <option value="BTC">Bitcoin (BTC)</option>
+                        <option value="ETH">Ethereum (ETH)</option>
+                        <option value="SOL">Solana (SOL)</option>
+                    </select>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label for="source">Data Source:</label>
+                    <select id="source">
+                        <option value="coingecko">CoinGecko</option>
+                        <option value="binance">Binance</option>
+                    </select>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label for="days">Days of Historical Data:</label>
+                    <input type="number" id="days" value="365" min="1" max="2000">
+                </div>
+                <button class="button" style="margin-top: 20px;">Fetch Data</button>
+            </div>
+        </div>
+        
+        <div id="upload" class="tab-content">
+            <div class="card">
+                <h2>Upload Cryptocurrency Data</h2>
+                <div>
+                    <label for="upload-crypto">Cryptocurrency:</label>
+                    <select id="upload-crypto">
+                        <option value="BTC">Bitcoin (BTC)</option>
+                        <option value="ETH">Ethereum (ETH)</option>
+                        <option value="SOL">Solana (SOL)</option>
+                    </select>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label for="custom-source">Data Source:</label>
+                    <input type="text" id="custom-source" placeholder="Enter custom source name">
+                </div>
+                <div style="margin-top: 10px;">
+                    <label for="file">CSV File:</label>
+                    <input type="file" id="file" accept=".csv">
+                    <p style="font-size: 0.8em; color: #718096;">CSV file should contain columns: timestamp, price, volume, etc.</p>
+                </div>
+                <button class="button" style="margin-top: 20px;">Upload Data</button>
+            </div>
+        </div>
+        
+        <div id="available" class="tab-content">
+            <div class="card">
+                <h2>Available Data</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f7fafc; text-align: left;">
+                            <th style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Symbol</th>
+                            <th style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Source</th>
+                            <th style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Date Range</th>
+                            <th style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Rows</th>
+                            <th style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Columns</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">BTC</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">coingecko</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">2024-04-04 to 2025-04-04</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">365</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">timestamp, price, volume, market_cap</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">ETH</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">coingecko</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">2024-04-04 to 2025-04-04</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">365</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">timestamp, price, volume, market_cap</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">SOL</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">coingecko</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">2024-04-04 to 2025-04-04</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">365</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">timestamp, price, volume, market_cap</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            // Hide all tab content
+            var tabcontent = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].className = tabcontent[i].className.replace(" active", "");
+            }
+            
+            // Remove active class from all tabs
+            var tabs = document.getElementsByClassName("tab");
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].className = tabs[i].className.replace(" active", "");
+            }
+            
+            // Show the current tab and add an "active" class to the button that opened the tab
+            document.getElementById(tabName).className += " active";
+            evt.currentTarget.className += " active";
+        }
+    </script>
+</body>
+</html>
