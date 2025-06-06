@@ -29,88 +29,51 @@ class CryptoDataFetcher:
         raise NotImplementedError("Subclasses must implement this method")
 
 
-from pycoingecko import CoinGeckoAPI
+import requests
 
-class CoinGeckoFetcher(CryptoDataFetcher):
-    """Fetcher for CoinGecko API"""
+class CoinMarketCapFetcher(CryptoDataFetcher):
+    """Fetcher for CoinMarketCap API"""
+
     def __init__(self, api_key: Optional[str] = None):
         super().__init__()
-        self.cg = CoinGeckoAPI(api_key=api_key)
-        self.coin_list = None
-        self._init_coin_list()
+        self.api_key = api_key
+        self.base_url = "https://pro-api.coinmarketcap.com"
 
-    def _init_coin_list(self):
-        """Initialize coin list for ID mapping"""
-        try:
-            self.coin_list = self.cg.get_coins_list()
-            logger.info(f"Initialized CoinGecko coin list with {len(self.coin_list)} coins")
-        except Exception as e:
-            logger.error(f"Failed to initialize CoinGecko coin list: {e}")
-            self.coin_list = []
+    def load_data(self, symbol: str, source: str = "coinmarketcap", days: int = 365) -> pd.DataFrame:
+        """Load data from CoinMarketCap API"""
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
 
-    def _get_coin_id(self, symbol: str) -> str:
-        """Get coin ID from symbol"""
-        if not self.coin_list:
-            self._init_coin_list()
-
-        # Find exact match first
-        for coin in self.coin_list:
-            if coin['symbol'].lower() == symbol.lower():
-                return coin['id']
-
-        # If no exact match, use common mappings
-        common_mappings = {
-            'btc': 'bitcoin',
-            'eth': 'ethereum',
-            'bnb': 'binancecoin',
-            'xrp': 'ripple',
-            'ada': 'cardano',
-            'sol': 'solana',
-            'doge': 'dogecoin'
+        url = f"{self.base_url}/v2/cryptocurrency/ohlcv/historical"
+        headers = {"X-CMC_PRO_API_KEY": self.api_key} if self.api_key else {}
+        params = {
+            "symbol": symbol.upper(),
+            "convert": "USD",
+            "time_start": start_date.strftime('%Y-%m-%d'),
+            "time_end": end_date.strftime('%Y-%m-%d')
         }
 
-        return common_mappings.get(symbol.lower())
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        data = response.json()
+        quotes = data.get("data", {}).get("quotes", [])
 
-    def load_data(self, symbol: str, source: str = "coingecko", days: int = 365) -> pd.DataFrame:
-        """Load data from CoinGecko API"""
-        coin_id = self._get_coin_id(symbol)
-        if not coin_id:
-            raise ValueError(f"Could not find coin ID for symbol {symbol}")
+        records = []
+        for q in quotes:
+            usd = q.get("quote", {}).get("USD", {})
+            records.append({
+                "timestamp": q.get("time_open"),
+                "open": usd.get("open"),
+                "high": usd.get("high"),
+                "low": usd.get("low"),
+                "close": usd.get("close"),
+                "volume": usd.get("volume")
+            })
 
-        try:
-            # Get market data
-            market_data = self.cg.get_coin_market_chart_by_id(
-                id=coin_id,
-                vs_currency='usd',
-                days=days
-            )
-
-            # Process price data
-            prices = market_data['prices']
-            volumes = market_data['total_volumes']
-            market_caps = market_data['market_caps']
-
-            df = pd.DataFrame(prices, columns=['timestamp', 'price'])
-            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-            df.set_index('timestamp', inplace=True)
-
-            # Add volume and market cap
-            df['volume'] = [v[1] for v in volumes]
-            df['market_cap'] = [m[1] for m in market_caps]
-
-            # Resample to hourly data to ensure consistency
-            df = df.resample('1H').mean()
-            df.dropna(inplace=True)
-
-            # Save data
-            df.reset_index(inplace=True)
-            filepath = self._save_data(df, symbol, source)
-
-            return df
-
-        except Exception as e:
-            logger.error(f"Error fetching data from CoinGecko: {e}")
-            raise
+        df = pd.DataFrame(records)
+        if not df.empty:
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            self._save_data(df, symbol, source)
+        return df
 
 
 from binance.client import Client
@@ -168,7 +131,7 @@ class BinanceFetcher(CryptoDataFetcher):
             raise
 
 
-def get_data_fetcher(source: str = "coingecko"):
+def get_data_fetcher(source: str = "coinmarketcap"):
     """Factory function to get the appropriate data fetcher"""
     # Use real data fetchers
     try:
@@ -180,8 +143,8 @@ def get_data_fetcher(source: str = "coingecko"):
         logger.warning(f"Error getting real data fetcher: {e}. Falling back to synthetic data.")
 
         # Fall back to existing fetchers
-        if source.lower() == "coingecko":
-            return CoinGeckoFetcher(api_key=settings.COINGECKO_API_KEY)
+        if source.lower() == "coinmarketcap":
+            return CoinMarketCapFetcher(api_key=settings.COINMARKETCAP_API_KEY)
         elif source.lower() == "binance":
             return BinanceFetcher(
                 api_key=settings.BINANCE_API_KEY,

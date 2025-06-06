@@ -13,7 +13,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
 const ApiKeys = () => {
-  const [coingeckoKey, setCoingeckoKey] = useState('');
+  const [coinmarketcapKey, setCoinmarketcapKey] = useState('');
   const [binanceKey, setBinanceKey] = useState('');
   const [binanceSecret, setBinanceSecret] = useState('');
   const [newsKey, setNewsKey] = useState('');
@@ -37,13 +37,13 @@ const ApiKeys = () => {
     e.preventDefault();
     try {
       await axios.post(`${API_BASE_URL}/api/keys`, {
-        coingecko_api_key: coingeckoKey || null,
+        coinmarketcap_api_key: coinmarketcapKey || null,
         binance_api_key: binanceKey || null,
         binance_api_secret: binanceSecret || null,
         news_api_key: newsKey || null,
       });
       toast({ title: 'API keys saved', status: 'success', duration: 3000, isClosable: true });
-      setCoingeckoKey('');
+      setCoinmarketcapKey('');
       setBinanceKey('');
       setBinanceSecret('');
       setNewsKey('');
@@ -59,9 +59,9 @@ const ApiKeys = () => {
       <Heading size="md" mb={4}>Manage API Keys</Heading>
       <form onSubmit={handleSubmit}>
         <FormControl mb={3}>
-          <FormLabel>CoinGecko API Key</FormLabel>
-          <Input value={coingeckoKey} onChange={(e) => setCoingeckoKey(e.target.value)} />
-          {status.coingecko_api_key ? <Text fontSize="sm" color="green.600">Key set</Text> : null}
+          <FormLabel>CoinMarketCap API Key</FormLabel>
+          <Input value={coinmarketcapKey} onChange={(e) => setCoinmarketcapKey(e.target.value)} />
+          {status.coinmarketcap_api_key ? <Text fontSize="sm" color="green.600">Key set</Text> : null}
         </FormControl>
         <FormControl mb={3}>
           <FormLabel>Binance API Key</FormLabel>

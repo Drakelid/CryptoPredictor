@@ -235,15 +235,17 @@ class SentimentService:
     def _fetch_market_indicators(self, symbol: str):
         """Fetch market indicators for a cryptocurrency"""
         try:
-            # Use CoinGecko API to get market data
-            response = requests.get(f"https://api.coingecko.com/api/v3/coins/{symbol.lower()}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false")
+            # Use CoinMarketCap API to get market data
+            url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
+            headers = {"X-CMC_PRO_API_KEY": settings.COINMARKETCAP_API_KEY} if settings.COINMARKETCAP_API_KEY else {}
+            response = requests.get(url, headers=headers, params={"symbol": symbol.upper()})
             if response.status_code == 200:
                 data = response.json()
-                market_data = data.get('market_data', {})
+                market_data = data.get('data', {}).get(symbol.upper(), {}).get('quote', {}).get('USD', {})
 
                 # Extract relevant market indicators
-                volume_change = market_data.get('volume_change_24h_in_currency', {}).get('usd', 0) / 100
-                price_change = market_data.get('price_change_percentage_24h', 0) / 100
+                volume_change = market_data.get('volume_change_24h', 0) / 100
+                price_change = market_data.get('percent_change_24h', 0) / 100
                 volatility = abs(price_change) * 2  # Simple volatility estimate
 
                 # Calculate momentum (based on price changes over different time periods)

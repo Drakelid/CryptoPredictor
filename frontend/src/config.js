@@ -4,8 +4,8 @@
 // Allow overriding the backend URL via environment variable so Docker
 // containers can point to the backend service when deployed.
 
-// Get API base URL from environment or fall back to localhost
-function getApiBaseUrl() {
+    defaultSource: 'coinmarketcap',
+  { value: 'coinmarketcap', label: 'CoinMarketCap' },
   // For debugging - log out to console which helps diagnose issues
   console.log('Window ENV:', window.__ENV);
   console.log('Import meta env:', import.meta.env);

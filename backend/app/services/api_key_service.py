@@ -8,13 +8,13 @@ class APIKeyService:
 
     def set_keys(
         self,
-        coingecko_api_key: str | None = None,
+        coinmarketcap_api_key: str | None = None,
         binance_api_key: str | None = None,
         binance_api_secret: str | None = None,
         news_api_key: str | None = None,
     ):
-        if coingecko_api_key is not None:
-            settings.COINGECKO_API_KEY = coingecko_api_key
+        if coinmarketcap_api_key is not None:
+            settings.COINMARKETCAP_API_KEY = coinmarketcap_api_key
         if binance_api_key is not None:
             settings.BINANCE_API_KEY = binance_api_key
         if binance_api_secret is not None:
@@ -25,7 +25,7 @@ class APIKeyService:
 
     def get_status(self):
         return {
-            "coingecko_api_key": bool(settings.COINGECKO_API_KEY),
+            "coinmarketcap_api_key": bool(settings.COINMARKETCAP_API_KEY),
             "binance_api_key": bool(settings.BINANCE_API_KEY),
             "binance_api_secret": bool(settings.BINANCE_API_SECRET),
             "news_api_key": bool(settings.NEWS_API_KEY),

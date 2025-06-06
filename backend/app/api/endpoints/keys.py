@@ -12,7 +12,7 @@ async def update_keys(keys: APIKeyUpdate):
     """Set API keys used by the application"""
     try:
         return api_key_service.set_keys(
-            coingecko_api_key=keys.coingecko_api_key,
+            coinmarketcap_api_key=keys.coinmarketcap_api_key,
             binance_api_key=keys.binance_api_key,
             binance_api_secret=keys.binance_api_secret,
             news_api_key=keys.news_api_key,
