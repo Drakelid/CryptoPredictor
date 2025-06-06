@@ -7,7 +7,16 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 import json
 
-from app.api.endpoints import predictions, models, data, backtesting, sentiment, auto_training, feedback
+from app.api.endpoints import (
+    predictions,
+    models,
+    data,
+    backtesting,
+    sentiment,
+    auto_training,
+    feedback,
+    keys,
+)
 from app.utils.json_utils import CustomJSONEncoder
 
 # Create a custom JSONResponse class that uses our CustomJSONEncoder
@@ -46,6 +55,7 @@ app.include_router(backtesting.router, prefix="/api/backtesting", tags=["backtes
 app.include_router(sentiment.router, prefix="/api/sentiment", tags=["sentiment"])
 app.include_router(auto_training.router, prefix="/api/auto-training", tags=["auto-training"])
 app.include_router(feedback.router, prefix="/api/feedback", tags=["feedback"])
+app.include_router(keys.router, prefix="/api/keys", tags=["keys"])
 
 # Start auto-training service on application startup
 from app.services.auto_training_service import auto_training_service
