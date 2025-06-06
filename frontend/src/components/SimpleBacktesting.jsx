@@ -72,7 +72,7 @@ const SimpleBacktesting = () => {
       console.error('Error fetching backtest history:', error);
       setError('Failed to fetch backtest history. Please try again.');
       setIsLoading(false);
-      // Use mock data as fallback
+      // Populate table with fallback data if API is unreachable
       setBacktestResults(mockBacktestHistory);
     }
   };
