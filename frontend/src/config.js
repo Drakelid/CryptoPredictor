@@ -1,7 +1,10 @@
 // Configuration for the application
 
 // API configuration
-export const API_BASE_URL = 'http://localhost:8000';
+// Allow overriding the backend URL via environment variable so Docker
+// containers can point to the backend service when deployed.
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Default settings
 export const DEFAULT_SETTINGS = {

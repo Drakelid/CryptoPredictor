@@ -1,5 +1,9 @@
 FROM node:18-alpine
 
+# Use the backend service URL when building inside docker-compose
+ARG VITE_API_BASE_URL=http://backend:8000
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 WORKDIR /app
 
 # Copy package.json and package-lock.json

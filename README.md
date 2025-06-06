@@ -73,6 +73,11 @@ docker-compose build
 docker-compose up
 ```
 
+The frontend expects the backend to be reachable at the URL defined by
+`VITE_API_BASE_URL` during its build process. The provided Dockerfile sets
+this to `http://backend:8000` so the frontend container can communicate with
+the backend service defined in `docker-compose.yml`.
+
 ### Dev Setup
 
 ```bash
