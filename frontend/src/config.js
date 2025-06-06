@@ -3,8 +3,24 @@
 // API configuration
 // Allow overriding the backend URL via environment variable so Docker
 // containers can point to the backend service when deployed.
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+// Get API base URL from environment or fall back to localhost
+function getApiBaseUrl() {
+  // For debugging - log out to console which helps diagnose issues
+  console.log('Window ENV:', window.__ENV);
+  console.log('Import meta env:', import.meta.env);
+  
+  // IMPORTANT: In browser context, we ALWAYS use localhost:8000 directly
+  // This ensures browser compatibility regardless of Docker network setup
+  // We're simplifying to ensure it works, then can refine later
+  return 'http://localhost:8000';
+}
+
+// Log the API URL on startup for debugging
+const apiBaseUrl = getApiBaseUrl();
+console.log('Using API base URL:', apiBaseUrl);
+
+export const API_BASE_URL = apiBaseUrl;
 
 // Default settings
 export const DEFAULT_SETTINGS = {

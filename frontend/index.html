@@ -4,12 +4,112 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CryptoPricer - AI-Powered Cryptocurrency Price Prediction</title>
-    <!-- Add Plotly.js -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <title>CryptoPredictor</title>
+    <script src="/env-config.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+      #error-display {
+        display: none;
+        background-color: #ffebee;
+        color: #c62828;
+        padding: 20px;
+        margin: 20px;
+        border-radius: 5px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        overflow: auto;
+        max-height: 400px;
+      }
+      #debug-tools {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-family: monospace;
+        text-align: center;
+        z-index: 9999;
+      }
+      #debug-tools a {
+        color: #4CAF50;
+        margin: 0 10px;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      #debug-tools a:hover {
+        text-decoration: underline;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="error-display"></div>
+    <div id="debug-tools">
+      <a href="/debug.html" target="_blank">Open Debug Page</a> | 
+      <a href="#" onclick="showRuntimeInfo(); return false;">Show Runtime Info</a> | 
+      <a href="#" onclick="testAPI(); return false;">Test API Connection</a>
+    </div>
+    <script>
+      // Error handler to catch React errors and display them
+      window.addEventListener('error', function(event) {
+        var errorDisplay = document.getElementById('error-display');
+        errorDisplay.style.display = 'block';
+        errorDisplay.innerHTML += '<strong>Error:</strong> ' + event.error?.message + '\n';
+        errorDisplay.innerHTML += '<strong>Stack:</strong>\n' + event.error?.stack + '\n\n';
+        console.error('Captured error:', event.error);
+      });
+      
+      // Also catch unhandled promise rejections
+      window.addEventListener('unhandledrejection', function(event) {
+        var errorDisplay = document.getElementById('error-display');
+        errorDisplay.style.display = 'block';
+        errorDisplay.innerHTML += '<strong>Unhandled Promise Rejection:</strong> ' + 
+                                 (event.reason?.message || event.reason || 'Unknown error') + '\n';
+        if (event.reason?.stack) {
+          errorDisplay.innerHTML += '<strong>Stack:</strong>\n' + event.reason.stack + '\n\n';
+        }
+        console.error('Unhandled rejection:', event.reason);
+      });
+
+      // Function to display runtime information
+      function showRuntimeInfo() {
+        var errorDisplay = document.getElementById('error-display');
+        errorDisplay.style.display = 'block';
+        errorDisplay.innerHTML = '<strong>Runtime Environment Info:</strong>\n';
+        errorDisplay.innerHTML += 'window.__ENV: ' + JSON.stringify(window.__ENV, null, 2) + '\n\n';
+        errorDisplay.innerHTML += 'API URL: ' + (window.__ENV?.VITE_API_BASE_URL || 'Not set') + '\n';
+        errorDisplay.innerHTML += 'Navigator Info: ' + navigator.userAgent + '\n';
+      }
+      
+      // Function to test API connection
+      function testAPI() {
+        var errorDisplay = document.getElementById('error-display');
+        errorDisplay.style.display = 'block';
+        errorDisplay.innerHTML = '<strong>Testing API Connection...</strong>\n';
+        
+        const apiUrl = window.__ENV?.VITE_API_BASE_URL || 'http://localhost:8000';
+        errorDisplay.innerHTML += 'Using API URL: ' + apiUrl + '\n\n';
+        
+        fetch(apiUrl)
+          .then(response => {
+            errorDisplay.innerHTML += 'Response status: ' + response.status + '\n';
+            return response.json();
+          })
+          .then(data => {
+            errorDisplay.innerHTML += 'Response data: ' + JSON.stringify(data, null, 2) + '\n';
+          })
+          .catch(error => {
+            errorDisplay.innerHTML += 'Error: ' + error.message + '\n';
+          });
+      }
+      
+      // Log environment info
+      console.log('Frontend Debug Info:');
+      console.log('- Window ENV:', window.__ENV);
+      console.log('- API URL:', window.__ENV?.VITE_API_BASE_URL || 'Not set');
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
