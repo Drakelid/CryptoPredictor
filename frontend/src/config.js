@@ -6,7 +6,9 @@
 // `process.env.VITE_API_BASE_URL` is used when building in Node (e.g. in Docker)
 // and `import.meta.env.VITE_API_BASE_URL` works when running via Vite dev server
 // or a regular production build. Both fall back to localhost for development.
-  (typeof process !== 'undefined' && process.env.VITE_API_BASE_URL) ||
+  (typeof process !== 'undefined' &&
+    process.env &&
+    process.env.VITE_API_BASE_URL) ||
   import.meta.env.VITE_API_BASE_URL ||
   'http://localhost:8000';
     defaultSource: 'coinmarketcap',
