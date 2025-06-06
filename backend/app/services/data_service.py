@@ -19,7 +19,7 @@ class DataService:
         self.data_dir = settings.DATA_DIR
         os.makedirs(self.data_dir, exist_ok=True)
 
-    def fetch_data(self, symbol: str, source: str = "coinmarketcap", days: int = 365) -> DataInfo:
+    def fetch_data(self, symbol: str, source: str = "binance", days: int = 365) -> DataInfo:
         """
         Fetch cryptocurrency data from external source
 
@@ -112,8 +112,8 @@ class DataService:
             if not files:
                 # If no local data found, try to fetch it
                 logger.info(f"No local data found for {symbol}, fetching from API...")
-                # Fetch data from API
-                info = self.fetch_data(symbol=symbol, source=source or "coinmarketcap", days=365)
+                # Fetch data from API using Binance as the default source
+                info = self.fetch_data(symbol=symbol, source=source or "binance", days=365)
                 # Load the newly fetched data
                 return self.load_data(symbol=symbol, source=source)
 

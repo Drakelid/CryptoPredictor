@@ -3,27 +3,35 @@
 // API configuration
 // Allow overriding the backend URL via environment variables so Docker
 // containers can point to the backend service when deployed.
-// `process.env.VITE_API_BASE_URL` is used when building in Node (e.g. in Docker)
-// and `import.meta.env.VITE_API_BASE_URL` works when running via Vite dev server
-// or a regular production build. Both fall back to localhost for development.
-// Pick the backend URL from Node or Vite env variables. Docker builds pass
-// VITE_API_BASE_URL so the frontend container can reach the backend service.
-const envBaseUrl =
-  typeof process !== 'undefined' && process.env
+
+// Get API base URL from environment or fall back to localhost
+function getApiBaseUrl() {
+  // Get API URL from multiple possible sources with fallbacks
+  // 1. Runtime environment variables (window.__ENV) - set by docker-entrypoint.sh
+  // 2. Build-time environment variables (import.meta.env) - set during build
+  // 3. Node environment variables - for SSR contexts
+  // 4. Default localhost for development
+  
+  // Check for Node environment (SSR context)
+  const nodeEnvUrl = typeof process !== 'undefined' && process.env
     ? process.env.VITE_API_BASE_URL
     : undefined;
-
-  envBaseUrl || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-    defaultSource: 'coinmarketcap',
-  { value: 'coinmarketcap', label: 'CoinMarketCap' },
+  
+  // Check for runtime injected environment variables
+  const runtimeEnvUrl = window.__ENV?.VITE_API_BASE_URL;
+  
+  // Check for build-time environment variables
+  const buildTimeEnvUrl = import.meta.env?.VITE_API_BASE_URL;
+  
   // For debugging - log out to console which helps diagnose issues
   console.log('Window ENV:', window.__ENV);
   console.log('Import meta env:', import.meta.env);
+  console.log('Node env:', nodeEnvUrl);
   
   // IMPORTANT: In browser context, we ALWAYS use localhost:8000 directly
   // This ensures browser compatibility regardless of Docker network setup
   // We're simplifying to ensure it works, then can refine later
-  return 'http://localhost:8000';
+  return runtimeEnvUrl || buildTimeEnvUrl || nodeEnvUrl || 'http://localhost:8000';
 }
 
 // Log the API URL on startup for debugging

@@ -57,38 +57,68 @@ class RealDataFetcher:
         Returns:
             DataFrame with cryptocurrency data or None if no suitable cache exists
         """
-        # Find the latest cache file for this symbol and source
-        cache_files = [f for f in os.listdir(self.cache_dir)
-                      if f.startswith(f"{symbol.lower()}_{source}_") and f.endswith('.csv')]
+        try:
+            # Find the latest cache file for this symbol and source
+            cache_files = [f for f in os.listdir(self.cache_dir)
+                          if f.startswith(f"{symbol.lower()}_{source}_") and f.endswith('.csv')]
 
-        if not cache_files:
+            if not cache_files:
+                logger.info(f"No cache file found for {symbol} from {source}")
+                return None
+
+            # Sort by date (newest first)
+            cache_files.sort(reverse=True)
+            latest_file = os.path.join(self.cache_dir, cache_files[0])
+
+            # Check if the file exists and is not empty
+            if not os.path.exists(latest_file) or os.path.getsize(latest_file) == 0:
+                logger.warning(f"Cache file {latest_file} is empty or doesn't exist")
+                return None
+
+            # Check if the cache is recent enough
+            file_date_str = cache_files[0].split('_')[-1].split('.')[0]
+            try:
+                file_date = datetime.strptime(file_date_str, '%Y%m%d')
+                if datetime.now() - file_date > timedelta(days=1):
+                    # Cache is too old, need to refresh
+                    logger.info(f"Cache for {symbol} from {source} is outdated")
+                    return None
+            except ValueError:
+                logger.warning(f"Invalid date format in cache file name: {cache_files[0]}")
+                return None
+
+            # Load the cache with error handling
+            try:
+                df = pd.read_csv(latest_file)
+                
+                # Check if the DataFrame is empty
+                if df.empty:
+                    logger.warning(f"Loaded empty DataFrame from {latest_file}")
+                    return None
+                    
+                # Convert timestamp to datetime
+                if 'timestamp' in df.columns:
+                    df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+                # Check if we have enough days of data
+                if len(df) < days:
+                    logger.info(f"Not enough data in cache for {symbol} (needed {days} days, got {len(df)})")
+                    return None
+
+                logger.info(f"Successfully loaded cached data for {symbol} from {source}")
+                # Filter to the requested number of days
+                return df.tail(days)
+                
+            except pd.errors.EmptyDataError:
+                logger.warning(f"Empty CSV file: {latest_file}")
+                return None
+            except Exception as e:
+                logger.warning(f"Error loading cached data: {str(e)}")
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Unexpected error in loading cached data: {str(e)}")
             return None
-
-        # Sort by date (newest first)
-        cache_files.sort(reverse=True)
-        latest_file = os.path.join(self.cache_dir, cache_files[0])
-
-        # Check if the cache is recent enough
-        file_date_str = cache_files[0].split('_')[-1].split('.')[0]
-        file_date = datetime.strptime(file_date_str, '%Y%m%d')
-
-        if datetime.now() - file_date > timedelta(days=1):
-            # Cache is too old, need to refresh
-            return None
-
-        # Load the cache
-        df = pd.read_csv(latest_file)
-
-        # Convert timestamp to datetime
-        if 'timestamp' in df.columns:
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
-
-        # Check if we have enough days of data
-        if len(df) < days:
-            return None
-
-        # Filter to the requested number of days
-        return df.tail(days)
 
     def _cache_data(self, df: pd.DataFrame, symbol: str, source: str):
         """
