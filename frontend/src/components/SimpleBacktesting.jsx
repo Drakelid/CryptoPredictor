@@ -31,48 +31,45 @@ const SimpleBacktesting = () => {
       setIsLoading(false);
       // Use mock data as fallback
       setBacktestResults([
-
-    {
-      symbol: 'BTC',
-      model_type: 'lstm',
-      start_date: '2024-10-01',
-      end_date: '2025-04-01',
-      initial_capital: 10000,
-      final_value: 13500,
-      roi: 35,
-      sharpe_ratio: 1.8,
-      max_drawdown: 12,
-      win_rate: 65,
-      trades: 42
-    },
-    {
-      symbol: 'ETH',
-      model_type: 'xgboost',
-      start_date: '2024-10-01',
-      end_date: '2025-04-01',
-      initial_capital: 10000,
-      final_value: 11200,
-      roi: 12,
-      sharpe_ratio: 1.2,
-      max_drawdown: 15,
-      win_rate: 58,
-      trades: 37
-    },
-    {
-      symbol: 'SOL',
-      model_type: 'gru',
-      start_date: '2024-10-01',
-      end_date: '2025-04-01',
-      initial_capital: 10000,
-      final_value: 14200,
-      roi: 42,
-      sharpe_ratio: 1.9,
-      max_drawdown: 18,
-      win_rate: 62,
-      trades: 45
-    }
-  ];
-
+        {
+          symbol: 'BTC',
+          model_type: 'lstm',
+          start_date: '2024-10-01',
+          end_date: '2025-04-01',
+          initial_capital: 10000,
+          final_value: 13500,
+          roi: 35,
+          sharpe_ratio: 1.8,
+          max_drawdown: 12,
+          win_rate: 65,
+          trades: 42
+        },
+        {
+          symbol: 'ETH',
+          model_type: 'xgboost',
+          start_date: '2024-10-01',
+          end_date: '2025-04-01',
+          initial_capital: 10000,
+          final_value: 11200,
+          roi: 12,
+          sharpe_ratio: 1.2,
+          max_drawdown: 15,
+          win_rate: 58,
+          trades: 37
+        },
+        {
+          symbol: 'SOL',
+          model_type: 'gru',
+          start_date: '2024-10-01',
+          end_date: '2025-04-01',
+          initial_capital: 10000,
+          final_value: 14200,
+          roi: 42,
+          sharpe_ratio: 1.9,
+          max_drawdown: 18,
+          win_rate: 62,
+          trades: 45
+        }
       ]);
     }
   };
