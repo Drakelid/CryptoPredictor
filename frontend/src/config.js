@@ -5,7 +5,7 @@
 // containers can point to the backend service when deployed.
 // Choose the backend URL from the Vite environment variable if set
 // otherwise default to localhost for local development.
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
     defaultSource: 'coinmarketcap',
   { value: 'coinmarketcap', label: 'CoinMarketCap' },
   // For debugging - log out to console which helps diagnose issues
