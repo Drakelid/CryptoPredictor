@@ -8,6 +8,7 @@ class PredictionInput(BaseModel):
     model_type: str = Field(..., description="Model type (lstm, gru, xgboost, lightgbm)")
     horizon: int = Field(7, description="Number of days to predict ahead")
     confidence_interval: bool = Field(False, description="Whether to include confidence intervals")
+    use_ensemble: bool = Field(False, description="Whether to use an ensemble of available models")
 
     model_config = {
         'protected_namespaces': (),
@@ -16,7 +17,8 @@ class PredictionInput(BaseModel):
                 "symbol": "BTC",
                 "model_type": "lstm",
                 "horizon": 7,
-                "confidence_interval": True
+                "confidence_interval": True,
+                "use_ensemble": False
             }
         }
     }
