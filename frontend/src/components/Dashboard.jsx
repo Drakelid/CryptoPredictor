@@ -109,30 +109,11 @@ const Dashboard = () => {
           model_type: selectedModel
         });
 
-        // For development/testing, return mock data
-        // Comment this out when backend is working
-        return {
-          symbol: selectedCrypto,
-          model_type: selectedModel,
-          prediction_date: new Date().toISOString(),
-          feature_importance: [
-            { feature: 'rsi_14', importance: 0.25 },
-            { feature: 'macd_line', importance: 0.20 },
-            { feature: 'bb_percent_b', importance: 0.15 },
-            { feature: 'sma_50_200_cross', importance: 0.10 },
-            { feature: 'volume', importance: 0.05 }
-          ],
-          shap_values: null
-        };
-
-        // Uncomment when backend is working
-        /*
-        const response = await axios.post('/api/predictions/explain', {
+        const response = await axiosInstance.post('/api/predictions/explain', {
           symbol: selectedCrypto,
           model_type: selectedModel
         });
         return response.data;
-        */
       } catch (error) {
         console.error('Error making explanation request:', error);
         throw error;

@@ -3,48 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
-// Fallback history used if the API call fails
-const mockBacktestHistory = [
-  {
-    symbol: 'BTC',
-    model_type: 'lstm',
-    start_date: '2024-10-01',
-    end_date: '2025-04-01',
-    initial_capital: 10000,
-    final_value: 13500,
-    roi: 35,
-    sharpe_ratio: 1.8,
-    max_drawdown: 12,
-    win_rate: 65,
-    trades: 42,
-  },
-  {
-    symbol: 'ETH',
-    model_type: 'xgboost',
-    start_date: '2024-10-01',
-    end_date: '2025-04-01',
-    initial_capital: 10000,
-    final_value: 11200,
-    roi: 12,
-    sharpe_ratio: 1.2,
-    max_drawdown: 15,
-    win_rate: 58,
-    trades: 37,
-  },
-  {
-    symbol: 'SOL',
-    model_type: 'gru',
-    start_date: '2024-10-01',
-    end_date: '2025-04-01',
-    initial_capital: 10000,
-    final_value: 14200,
-    roi: 42,
-    sharpe_ratio: 1.9,
-    max_drawdown: 18,
-    win_rate: 62,
-    trades: 45,
-  },
-];
 
 const SimpleBacktesting = () => {
   const [activeTab, setActiveTab] = useState('run');
@@ -72,8 +30,6 @@ const SimpleBacktesting = () => {
       console.error('Error fetching backtest history:', error);
       setError('Failed to fetch backtest history. Please try again.');
       setIsLoading(false);
-      // Populate table with fallback data if API is unreachable
-      setBacktestResults(mockBacktestHistory);
     }
   };
 
@@ -125,7 +81,7 @@ const SimpleBacktesting = () => {
     }
   };
 
-  const mockStrategies = [
+  const strategies = [
     {
       id: 'prediction_based',
       name: 'Prediction Based Strategy',
@@ -304,7 +260,7 @@ const SimpleBacktesting = () => {
               <div style={{ marginTop: '10px' }}>
                 <label htmlFor="strategy">Trading Strategy:</label>
                 <select id="strategy" style={{ marginLeft: '10px' }}>
-                  {mockStrategies.map(strategy => (
+                  {strategies.map(strategy => (
                     <option key={strategy.id} value={strategy.id}>
                       {strategy.name}
                     </option>

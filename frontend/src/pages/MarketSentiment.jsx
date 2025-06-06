@@ -35,72 +35,6 @@ import {
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
-// Mock sentiment data
-const mockSentimentData = {
-  BTC: {
-    social_sentiment: {
-      twitter: 0.65,
-      reddit: 0.58,
-      overall: 0.62,
-      change_24h: 0.05,
-    },
-    news_sentiment: {
-      positive_articles: 28,
-      negative_articles: 12,
-      neutral_articles: 15,
-      overall: 0.72,
-      change_24h: -0.03,
-    },
-    fear_greed_index: {
-      value: 65,
-      classification: 'Greed',
-      change_24h: 5,
-    },
-    market_indicators: {
-      volume_change: 0.12,
-      volatility: 0.08,
-      momentum: 0.65,
-    },
-    historical: [
-      { date: '2025-04-01', social: 0.57, news: 0.75, fear_greed: 60 },
-      { date: '2025-04-02', social: 0.59, news: 0.73, fear_greed: 62 },
-      { date: '2025-04-03', social: 0.61, news: 0.70, fear_greed: 63 },
-      { date: '2025-04-04', social: 0.62, news: 0.72, fear_greed: 65 },
-    ]
-  },
-  ETH: {
-    social_sentiment: {
-      twitter: 0.72,
-      reddit: 0.68,
-      overall: 0.70,
-      change_24h: 0.02,
-    },
-    news_sentiment: {
-      positive_articles: 32,
-      negative_articles: 8,
-      neutral_articles: 12,
-      overall: 0.78,
-      change_24h: 0.04,
-    },
-    fear_greed_index: {
-      value: 72,
-      classification: 'Greed',
-      change_24h: 3,
-    },
-    market_indicators: {
-      volume_change: 0.08,
-      volatility: 0.06,
-      momentum: 0.72,
-    },
-    historical: [
-      { date: '2025-04-01', social: 0.68, news: 0.74, fear_greed: 69 },
-      { date: '2025-04-02', social: 0.69, news: 0.76, fear_greed: 70 },
-      { date: '2025-04-03', social: 0.70, news: 0.77, fear_greed: 71 },
-      { date: '2025-04-04', social: 0.70, news: 0.78, fear_greed: 72 },
-    ]
-  }
-};
-
 const MarketSentiment = () => {
   const [selectedCrypto, setSelectedCrypto] = useState('BTC');
   const [sentimentData, setSentimentData] = useState(null);
@@ -113,16 +47,10 @@ const MarketSentiment = () => {
   const fetchSentimentData = async () => {
     setIsLoading(true);
     try {
-      // In a real app, this would be an API call
-      // const response = await axios.get(`${API_BASE_URL}/api/sentiment/${selectedCrypto}`);
-      // setSentimentData(response.data);
-      
-      // Using mock data for now
-      setTimeout(() => {
-        setSentimentData(mockSentimentData[selectedCrypto]);
-        setLastUpdated(new Date());
-        setIsLoading(false);
-      }, 1000);
+      const response = await axios.get(`${API_BASE_URL}/api/sentiment/${selectedCrypto}`);
+      setSentimentData(response.data);
+      setLastUpdated(new Date());
+      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching sentiment data:', error);
       toast({
@@ -140,30 +68,17 @@ const MarketSentiment = () => {
   const refreshSentimentData = async () => {
     setIsRefreshing(true);
     try {
-      // In a real app, this would be an API call
-      // const response = await axios.get(`${API_BASE_URL}/api/sentiment/${selectedCrypto}/refresh`);
-      // setSentimentData(response.data);
-      
-      // Using mock data for now
-      setTimeout(() => {
-        // Simulate a small change in the data
-        const updatedData = { ...mockSentimentData[selectedCrypto] };
-        updatedData.social_sentiment.overall += (Math.random() * 0.1 - 0.05);
-        updatedData.news_sentiment.overall += (Math.random() * 0.1 - 0.05);
-        updatedData.fear_greed_index.value += Math.floor(Math.random() * 6 - 3);
-        
-        setSentimentData(updatedData);
-        setLastUpdated(new Date());
-        setIsRefreshing(false);
-        
-        toast({
-          title: 'Sentiment data refreshed',
-          description: `Latest sentiment data for ${selectedCrypto} has been loaded`,
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-      }, 1500);
+      const response = await axios.post(`${API_BASE_URL}/api/sentiment/refresh/${selectedCrypto}`);
+      setSentimentData(response.data);
+      setLastUpdated(new Date());
+      setIsRefreshing(false);
+      toast({
+        title: 'Sentiment data refreshed',
+        description: `Latest sentiment data for ${selectedCrypto} has been loaded`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       console.error('Error refreshing sentiment data:', error);
       toast({

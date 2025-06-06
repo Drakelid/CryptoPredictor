@@ -7,7 +7,6 @@ import Navbar from './components/Navbar'
 
 // Import components
 import DataUpload from './components/DataUpload'
-import DataManagement from './pages/DataManagement'
 import MarketSentiment from './pages/MarketSentiment'
 import AutoTraining from './pages/AutoTraining'
 import ModelTrainingWithAPI from './components/ModelTrainingWithAPI'
@@ -39,7 +38,7 @@ function App() {
             <Box as="main" p={4}>
               <Routes>
                 <Route path="/" element={<RouteWithErrorBoundary component={Dashboard} />} />
-                <Route path="/data" element={<RouteWithErrorBoundary component={DataManagement} />} />
+                <Route path="/data" element={<RouteWithErrorBoundary component={DataUpload} />} />
                 <Route path="/sentiment" element={<RouteWithErrorBoundary component={MarketSentiment} />} />
                 <Route path="/auto-training" element={<RouteWithErrorBoundary component={AutoTraining} />} />
                 <Route path="/models" element={<RouteWithErrorBoundary component={ModelTrainingWithAPI} />} />

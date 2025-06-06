@@ -36,8 +36,6 @@ import { keyframes } from '@emotion/react';
 import { useQuery, useMutation } from 'react-query';
 import axios from 'axios';
 
-// Import mock data
-import { mockDataInfo } from '../utils/mockData';
 import { API_BASE_URL, AVAILABLE_CRYPTOCURRENCIES, AVAILABLE_DATA_SOURCES } from '../config';
 
 // Define animations
@@ -73,12 +71,10 @@ const DataUpload = () => {
         });
         const response = await axiosInstance.get('/api/data/info');
         console.log('Data info response:', response.data);
-        // If the API returns empty data, use mock data
-        return response.data && response.data.length > 0 ? response.data : mockDataInfo;
+        return response.data;
       } catch (error) {
         console.error('Error fetching data info:', error);
-        // Return mock data on error
-        return mockDataInfo;
+        throw error;
       }
     },
     {
@@ -90,9 +86,7 @@ const DataUpload = () => {
           duration: 5000,
           isClosable: true,
         });
-      },
-      // Ensure we always have data
-      select: (data) => data && data.length > 0 ? data : mockDataInfo
+      }
     }
   );
 

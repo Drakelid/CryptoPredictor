@@ -49,39 +49,6 @@ const pulseAnimation = keyframes`
   100% { box-shadow: 0 0 0 0 rgba(66, 153, 225, 0); }
 `;
 
-// Mock data for fallback
-const mockModelInfo = [
-  {
-    symbol: 'BTC',
-    model_type: 'lstm',
-    training_date: '2025-04-01T10:00:00Z',
-    metrics: {
-      mse: 0.0025,
-      mae: 0.0345,
-      r2: 0.87
-    }
-  },
-  {
-    symbol: 'ETH',
-    model_type: 'xgboost',
-    training_date: '2025-04-02T14:30:00Z',
-    metrics: {
-      mse: 0.0018,
-      mae: 0.0289,
-      r2: 0.91
-    }
-  },
-  {
-    symbol: 'SOL',
-    model_type: 'gru',
-    training_date: '2025-04-03T09:15:00Z',
-    metrics: {
-      mse: 0.0031,
-      mae: 0.0412,
-      r2: 0.83
-    }
-  }
-];
 
 const ModelTrainingWithAPI = () => {
   const navigate = useNavigate();
@@ -113,10 +80,10 @@ const ModelTrainingWithAPI = () => {
         });
         const response = await axiosInstance.get('/api/models/info');
         console.log('Model info response:', response.data);
-        return response.data && response.data.length > 0 ? response.data : mockModelInfo;
+        return response.data;
       } catch (error) {
         console.error('Error fetching model info:', error);
-        return mockModelInfo;
+        throw error;
       }
     },
     {
@@ -129,8 +96,7 @@ const ModelTrainingWithAPI = () => {
           isClosable: true,
         });
       },
-      // Ensure we always have data
-      select: (data) => data && data.length > 0 ? data : mockModelInfo
+      select: (data) => data
     }
   );
 
