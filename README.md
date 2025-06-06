@@ -9,6 +9,7 @@ A full-stack, AI-powered web application for predicting cryptocurrency prices (e
 - **Model Training**: Upload new data and retrain models via the web UI.
 - **Backtesting**: Simulate trading performance with different strategies.
 - **Continuous Learning**: Online model updates and memory-based recall using vector databases.
+- **API Key Management**: Enter your CoinGecko, Binance, and News API keys through a dedicated page.
 - **Ensemble Predictions**: Optionally combine multiple models for improved accuracy.
 
 ## 🧱 Tech Stack
