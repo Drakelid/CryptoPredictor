@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Debug Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Debug Page</h1>
+        
+        <div class="card">
+            <h2>Environment Variables</h2>
+            <pre id="env-variables">Loading...</pre>
+        </div>
+
+        <div class="card">
+            <h2>API Root Test</h2>
+            <button onclick="testRootEndpoint()">Test API Root (/)</button>
+            <pre id="root-result">Not tested yet</pre>
+        </div>
+
+        <div class="card">
+            <h2>Backend Health Check</h2>
+            <button onclick="testHealthEndpoint()">Test Health (/api/health)</button>
+            <pre id="health-result">Not tested yet</pre>
+        </div>
+
+        <div class="card">
+            <h2>Models Info Test</h2>
+            <button onclick="testModelsInfo()">Test Models Info (/api/models/info)</button>
+            <pre id="models-result">Not tested yet</pre>
+        </div>
+    </div>
+
+    <script>
+        // Display environment variables
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show environment variables
+            const envVars = {
+                windowEnv: window.__ENV || {},
+                importMetaEnv: 'Not accessible directly in browser',
+                apiBaseUrl: window.__ENV?.VITE_API_BASE_URL || 'Not set'
+            };
+            
+            document.getElementById('env-variables').textContent = JSON.stringify(envVars, null, 2);
+        });
+
+        // Test root endpoint
+        function testRootEndpoint() {
+            const resultElement = document.getElementById('root-result');
+            resultElement.textContent = "Testing...";
+            
+            fetch('http://localhost:8000/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    resultElement.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                    console.error('Error testing root endpoint:', error);
+                });
+        }
+
+        // Test health endpoint
+        function testHealthEndpoint() {
+            const resultElement = document.getElementById('health-result');
+            resultElement.textContent = "Testing...";
+            
+            fetch('http://localhost:8000/api/health')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    resultElement.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                    console.error('Error testing health endpoint:', error);
+                });
+        }
+
+        // Test models info endpoint
+        function testModelsInfo() {
+            const resultElement = document.getElementById('models-result');
+            resultElement.textContent = "Testing...";
+            
+            fetch('http://localhost:8000/api/models/info')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    resultElement.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                    console.error('Error testing models info endpoint:', error);
+                });
+        }
+    </script>
+</body>
+</html>

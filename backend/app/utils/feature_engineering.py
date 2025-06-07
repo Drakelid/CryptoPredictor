@@ -73,7 +73,7 @@ class FeatureEngineer:
             df['high_low_diff'] = df['high'] - df['low']
             df['high_low_pct'] = (df['high'] - df['low']) / df['low']
 
-        # If we only have price data (e.g., from CoinGecko)
+        # If we only have price data (e.g., from CoinMarketCap)
         elif 'price' in df.columns:
             # Calculate returns
             df['daily_return'] = df['price'].ffill().pct_change(fill_method=None)

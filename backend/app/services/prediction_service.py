@@ -80,6 +80,18 @@ class PredictionService:
         Returns:
             PredictionResult object with prediction information
         """
+        # Use ensemble of models if requested
+        if use_ensemble:
+            return self._predict_ensemble(
+                symbol=symbol,
+                horizon=horizon,
+                confidence_interval=confidence_interval,
+                use_advanced_features=use_advanced_features,
+                use_feature_selection=use_feature_selection,
+                use_anomaly_detection=use_anomaly_detection,
+                use_continual_learning=use_continual_learning,
+            )
+
         # Force model_type to lowercase for consistency
         model_type = model_type.lower() if model_type else 'lstm'
 
@@ -857,6 +869,54 @@ class PredictionService:
         )
 
         return result
+
+    def _predict_ensemble(
+        self,
+        symbol: str,
+        horizon: int,
+        confidence_interval: bool,
+        use_advanced_features: bool,
+        use_feature_selection: bool,
+        use_anomaly_detection: bool,
+        use_continual_learning: bool,
+    ) -> PredictionResult:
+        """Generate prediction by averaging all available model types."""
+        predictions = []
+        timestamps = None
+
+        for mt in settings.SUPPORTED_MODELS:
+            try:
+                if not self.training_service.get_model_info(symbol=symbol, model_type=mt):
+                    continue
+                res = self.predict(
+                    symbol=symbol,
+                    model_type=mt,
+                    horizon=horizon,
+                    confidence_interval=confidence_interval,
+                    use_advanced_features=use_advanced_features,
+                    use_ensemble=False,
+                    use_feature_selection=use_feature_selection,
+                    use_anomaly_detection=use_anomaly_detection,
+                    use_continual_learning=use_continual_learning,
+                )
+                predictions.append(res.values)
+                timestamps = res.timestamps
+            except Exception as e:
+                logger.warning(f"Ensemble component {mt} failed: {e}")
+
+        if not predictions:
+            raise ValueError("No trained models available for ensemble prediction")
+
+        avg_values = np.mean(np.array(predictions), axis=0).tolist()
+
+        return PredictionResult(
+            symbol=symbol,
+            model_type="ensemble",
+            prediction_date=datetime.now(),
+            horizon=horizon,
+            values=avg_values,
+            timestamps=timestamps,
+        )
 
     # The _generate_mock_prediction method has been removed to ensure only real data is used
 

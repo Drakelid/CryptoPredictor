@@ -252,6 +252,10 @@ const NAV_ITEMS = [
     href: '/models',
   },
   {
+    label: 'API Keys',
+    href: '/api-keys',
+  },
+  {
     label: 'Backtesting',
     href: '/backtest',
   },

@@ -11,7 +11,7 @@ class Settings(BaseModel):
     MODELS_DIR: str = os.path.join(os.getcwd(), "..", "models")
 
     # API Keys (in production, use environment variables)
-    COINGECKO_API_KEY: Optional[str] = None
+    COINMARKETCAP_API_KEY: Optional[str] = None
     BINANCE_API_KEY: Optional[str] = None
     BINANCE_API_SECRET: Optional[str] = None
     NEWS_API_KEY: Optional[str] = None  # For CryptoPanic API

@@ -43,12 +43,13 @@ const Dashboard = () => {
   const [useFeatureSelection, setUseFeatureSelection] = useState(true);
   const [useAnomalyDetection, setUseAnomalyDetection] = useState(true);
   const [useContinualLearning, setUseContinualLearning] = useState(false);
+  const [useEnsemble, setUseEnsemble] = useState(false);
   const [useSimpleChart, setUseSimpleChart] = useState(true); // Use simple chart by default
   const toast = useToast();
 
   // Fetch prediction
   const { data: prediction, isLoading: predictionLoading, error: predictionError, refetch: refetchPrediction } = useQuery(
-    ['prediction', selectedCrypto, selectedModel, predictionHorizon, showConfidence, useFeatureSelection, useAnomalyDetection, useContinualLearning],
+    ['prediction', selectedCrypto, selectedModel, predictionHorizon, showConfidence, useFeatureSelection, useAnomalyDetection, useContinualLearning, useEnsemble],
     async () => {
       try {
         console.log('Making prediction request with:', {
@@ -58,7 +59,8 @@ const Dashboard = () => {
           confidence_interval: showConfidence,
           use_feature_selection: useFeatureSelection,
           use_anomaly_detection: useAnomalyDetection,
-          use_continual_learning: useContinualLearning
+          use_continual_learning: useContinualLearning,
+          use_ensemble: useEnsemble
         });
 
         // Make the actual API call to the backend
@@ -73,7 +75,8 @@ const Dashboard = () => {
           confidence_interval: showConfidence,
           use_feature_selection: useFeatureSelection,
           use_anomaly_detection: useAnomalyDetection,
-          use_continual_learning: useContinualLearning
+          use_continual_learning: useContinualLearning,
+          use_ensemble: useEnsemble
         });
 
         console.log('Prediction response:', response.data);
@@ -109,30 +112,11 @@ const Dashboard = () => {
           model_type: selectedModel
         });
 
-        // For development/testing, return mock data
-        // Comment this out when backend is working
-        return {
-          symbol: selectedCrypto,
-          model_type: selectedModel,
-          prediction_date: new Date().toISOString(),
-          feature_importance: [
-            { feature: 'rsi_14', importance: 0.25 },
-            { feature: 'macd_line', importance: 0.20 },
-            { feature: 'bb_percent_b', importance: 0.15 },
-            { feature: 'sma_50_200_cross', importance: 0.10 },
-            { feature: 'volume', importance: 0.05 }
-          ],
-          shap_values: null
-        };
-
-        // Uncomment when backend is working
-        /*
-        const response = await axios.post('/api/predictions/explain', {
+        const response = await axiosInstance.post('/api/predictions/explain', {
           symbol: selectedCrypto,
           model_type: selectedModel
         });
         return response.data;
-        */
       } catch (error) {
         console.error('Error making explanation request:', error);
         throw error;
@@ -318,10 +302,22 @@ const Dashboard = () => {
                     <option value="false">Disabled</option>
                   </Select>
                 </Box>
+
+                <Box>
+                  <Text mb={1} fontSize="sm">Ensemble Prediction</Text>
+                  <Select
+                    size="sm"
+                    value={useEnsemble ? "true" : "false"}
+                    onChange={(e) => setUseEnsemble(e.target.value === "true")}
+                  >
+                    <option value="true">Enabled</option>
+                    <option value="false">Disabled</option>
+                  </Select>
+                </Box>
               </SimpleGrid>
 
               <Text fontSize="xs" mt={3} color="gray.600">
-                These advanced options can significantly improve prediction accuracy. Feature selection identifies the most important factors, anomaly detection handles outliers, and continual learning updates models with new data.
+                These advanced options can significantly improve prediction accuracy. Feature selection identifies the most important factors, anomaly detection handles outliers, continual learning updates models with new data, and ensemble prediction combines multiple models for better results.
               </Text>
             </Box>
           )}

@@ -9,6 +9,8 @@ A full-stack, AI-powered web application for predicting cryptocurrency prices (e
 - **Model Training**: Upload new data and retrain models via the web UI.
 - **Backtesting**: Simulate trading performance with different strategies.
 - **Continuous Learning**: Online model updates and memory-based recall using vector databases.
+- **API Key Management**: Enter your CoinMarketCap, Binance, and News API keys through a dedicated page.
+- **Ensemble Predictions**: Optionally combine multiple models for improved accuracy.
 
 ## 🧱 Tech Stack
 
@@ -26,7 +28,7 @@ A full-stack, AI-powered web application for predicting cryptocurrency prices (e
 
 ## 📊 Data Sources & Feature Engineering
 
-- **Historical Data**: CoinGecko / Binance OHLCV prices
+- **Historical Data**: CoinMarketCap / Binance OHLCV prices
 - **Engineered Features**: Technical indicators like MA, RSI, MACD, Bollinger Bands
 - **Normalization**: All features scaled appropriately
 
@@ -72,6 +74,11 @@ docker-compose build
 # Run app
 docker-compose up
 ```
+
+The frontend expects the backend to be reachable at the URL defined by
+`VITE_API_BASE_URL` during its build process. The provided Dockerfile sets
+this to `http://backend:8000` so the frontend container can communicate with
+the backend service defined in `docker-compose.yml`.
 
 ### Dev Setup
 

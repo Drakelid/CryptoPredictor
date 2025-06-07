@@ -57,38 +57,68 @@ class RealDataFetcher:
         Returns:
             DataFrame with cryptocurrency data or None if no suitable cache exists
         """
-        # Find the latest cache file for this symbol and source
-        cache_files = [f for f in os.listdir(self.cache_dir)
-                      if f.startswith(f"{symbol.lower()}_{source}_") and f.endswith('.csv')]
+        try:
+            # Find the latest cache file for this symbol and source
+            cache_files = [f for f in os.listdir(self.cache_dir)
+                          if f.startswith(f"{symbol.lower()}_{source}_") and f.endswith('.csv')]
 
-        if not cache_files:
+            if not cache_files:
+                logger.info(f"No cache file found for {symbol} from {source}")
+                return None
+
+            # Sort by date (newest first)
+            cache_files.sort(reverse=True)
+            latest_file = os.path.join(self.cache_dir, cache_files[0])
+
+            # Check if the file exists and is not empty
+            if not os.path.exists(latest_file) or os.path.getsize(latest_file) == 0:
+                logger.warning(f"Cache file {latest_file} is empty or doesn't exist")
+                return None
+
+            # Check if the cache is recent enough
+            file_date_str = cache_files[0].split('_')[-1].split('.')[0]
+            try:
+                file_date = datetime.strptime(file_date_str, '%Y%m%d')
+                if datetime.now() - file_date > timedelta(days=1):
+                    # Cache is too old, need to refresh
+                    logger.info(f"Cache for {symbol} from {source} is outdated")
+                    return None
+            except ValueError:
+                logger.warning(f"Invalid date format in cache file name: {cache_files[0]}")
+                return None
+
+            # Load the cache with error handling
+            try:
+                df = pd.read_csv(latest_file)
+                
+                # Check if the DataFrame is empty
+                if df.empty:
+                    logger.warning(f"Loaded empty DataFrame from {latest_file}")
+                    return None
+                    
+                # Convert timestamp to datetime
+                if 'timestamp' in df.columns:
+                    df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+                # Check if we have enough days of data
+                if len(df) < days:
+                    logger.info(f"Not enough data in cache for {symbol} (needed {days} days, got {len(df)})")
+                    return None
+
+                logger.info(f"Successfully loaded cached data for {symbol} from {source}")
+                # Filter to the requested number of days
+                return df.tail(days)
+                
+            except pd.errors.EmptyDataError:
+                logger.warning(f"Empty CSV file: {latest_file}")
+                return None
+            except Exception as e:
+                logger.warning(f"Error loading cached data: {str(e)}")
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Unexpected error in loading cached data: {str(e)}")
             return None
-
-        # Sort by date (newest first)
-        cache_files.sort(reverse=True)
-        latest_file = os.path.join(self.cache_dir, cache_files[0])
-
-        # Check if the cache is recent enough
-        file_date_str = cache_files[0].split('_')[-1].split('.')[0]
-        file_date = datetime.strptime(file_date_str, '%Y%m%d')
-
-        if datetime.now() - file_date > timedelta(days=1):
-            # Cache is too old, need to refresh
-            return None
-
-        # Load the cache
-        df = pd.read_csv(latest_file)
-
-        # Convert timestamp to datetime
-        if 'timestamp' in df.columns:
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
-
-        # Check if we have enough days of data
-        if len(df) < days:
-            return None
-
-        # Filter to the requested number of days
-        return df.tail(days)
 
     def _cache_data(self, df: pd.DataFrame, symbol: str, source: str):
         """
@@ -118,29 +148,18 @@ class RealDataFetcher:
         raise NotImplementedError("Subclasses must implement _fetch_data method")
 
 
-class RealCoinGeckoFetcher(RealDataFetcher):
-    """Data fetcher for CoinGecko API"""
+class RealCoinMarketCapFetcher(RealDataFetcher):
+    """Data fetcher for CoinMarketCap API"""
 
     def __init__(self):
-        """Initialize CoinGecko fetcher"""
+        """Initialize CoinMarketCap fetcher"""
         super().__init__()
-        self.base_url = "https://api.coingecko.com/api/v3"
-        self.coin_ids = {
-            'btc': 'bitcoin',
-            'eth': 'ethereum',
-            'bnb': 'binancecoin',
-            'xrp': 'ripple',
-            'ada': 'cardano',
-            'sol': 'solana',
-            'doge': 'dogecoin',
-            'dot': 'polkadot',
-            'avax': 'avalanche-2',
-            'matic': 'matic-network'
-        }
+        self.base_url = "https://pro-api.coinmarketcap.com"
+        self.api_key = settings.COINMARKETCAP_API_KEY
 
     def _fetch_data(self, symbol: str, days: int) -> pd.DataFrame:
         """
-        Fetch data from CoinGecko
+        Fetch data from CoinMarketCap
 
         Args:
             symbol: Cryptocurrency symbol
@@ -149,78 +168,49 @@ class RealCoinGeckoFetcher(RealDataFetcher):
         Returns:
             DataFrame with cryptocurrency data
         """
-        symbol = symbol.lower()
-
-        # Get coin ID
-        coin_id = self.coin_ids.get(symbol)
-        if coin_id is None:
-            # Try to find the coin ID
-            try:
-                coins_list = requests.get(f"{self.base_url}/coins/list").json()
-                for coin in coins_list:
-                    if coin['symbol'].lower() == symbol:
-                        coin_id = coin['id']
-                        break
-            except Exception as e:
-                logger.error(f"Error fetching coin list: {e}")
-
-            if coin_id is None:
-                raise ValueError(f"Unknown coin symbol: {symbol}")
-
+        symbol = symbol.upper()
         # Fetch market data
         try:
-            # CoinGecko has rate limits, so we need to be careful
-            url = f"{self.base_url}/coins/{coin_id}/market_chart"
+            url = f"{self.base_url}/v2/cryptocurrency/ohlcv/historical"
+            headers = {"X-CMC_PRO_API_KEY": self.api_key} if self.api_key else {}
+            end_date = datetime.utcnow()
+            start_date = end_date - timedelta(days=days)
             params = {
-                'vs_currency': 'usd',
-                'days': days,
-                'interval': 'daily'
+                'symbol': symbol,
+                'convert': 'USD',
+                'time_start': start_date.strftime('%Y-%m-%d'),
+                'time_end': end_date.strftime('%Y-%m-%d')
             }
 
-            response = requests.get(url, params=params)
+            response = requests.get(url, headers=headers, params=params, timeout=10)
             data = response.json()
 
-            # Extract price, volume, and market cap data
-            prices = data.get('prices', [])
-            volumes = data.get('total_volumes', [])
-            market_caps = data.get('market_caps', [])
+            quotes = data.get('data', {}).get('quotes', [])
+            records = []
+            for q in quotes:
+                usd = q.get('quote', {}).get('USD', {})
+                records.append({
+                    'timestamp': q.get('time_open'),
+                    'open': usd.get('open'),
+                    'high': usd.get('high'),
+                    'low': usd.get('low'),
+                    'close': usd.get('close'),
+                    'volume': usd.get('volume')
+                })
 
-            # Create DataFrame
-            df_prices = pd.DataFrame(prices, columns=['timestamp', 'price'])
-            df_volumes = pd.DataFrame(volumes, columns=['timestamp', 'volume'])
-            df_market_caps = pd.DataFrame(market_caps, columns=['timestamp', 'market_cap'])
+            df = pd.DataFrame(records)
 
-            # Convert timestamp from milliseconds to datetime for all DataFrames
-            df_prices['timestamp'] = pd.to_datetime(df_prices['timestamp'], unit='ms')
-            df_volumes['timestamp'] = pd.to_datetime(df_volumes['timestamp'], unit='ms')
-            df_market_caps['timestamp'] = pd.to_datetime(df_market_caps['timestamp'], unit='ms')
-
-            # Merge DataFrames
-            df = df_prices.merge(df_volumes, on='timestamp', how='left')
-            df = df.merge(df_market_caps, on='timestamp', how='left')
-
-            # Add symbol column
-            df['symbol'] = symbol.upper()
-
-            # Add OHLC columns (CoinGecko only provides daily close prices)
-            df['close'] = df['price']
-            df['open'] = df['price'].shift(1)
-            df['high'] = df['price']
-            df['low'] = df['price']
-
-            # Fill missing values
-            df['open'] = df['open'].fillna(df['close'])
-
-            # Sort by timestamp
-            df = df.sort_values('timestamp')
-
+            if not df.empty:
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                df['symbol'] = symbol
+                df = df.sort_values('timestamp')
             return df
 
         except Exception as e:
-            logger.error(f"Error fetching data from CoinGecko: {e}")
+            logger.error(f"Error fetching data from CoinMarketCap: {e}")
 
             # Raise an error if API fails
-            raise ValueError(f"Failed to fetch data from CoinGecko for {symbol}: {e}")
+            raise ValueError(f"Failed to fetch data from CoinMarketCap for {symbol}: {e}")
 
     # Synthetic data generation has been removed to ensure only real data is used
 
@@ -326,8 +316,8 @@ def get_real_data_fetcher(source: str) -> RealDataFetcher:
     Returns:
         RealDataFetcher instance
     """
-    if source.lower() == 'coingecko':
-        return RealCoinGeckoFetcher()
+    if source.lower() == 'coinmarketcap':
+        return RealCoinMarketCapFetcher()
     elif source.lower() == 'binance':
         return RealBinanceFetcher()
     else:

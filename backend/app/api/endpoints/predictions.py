@@ -36,7 +36,8 @@ async def predict(
             symbol=input_data.symbol,
             model_type=model_type,  # Use the lowercase model_type
             horizon=input_data.horizon,
-            confidence_interval=input_data.confidence_interval
+            confidence_interval=input_data.confidence_interval,
+            use_ensemble=input_data.use_ensemble
         )
         return result
     except Exception as e:

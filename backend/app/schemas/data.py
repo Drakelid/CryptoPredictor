@@ -5,7 +5,7 @@ from datetime import datetime
 class DataFetchInput(BaseModel):
     """Schema for data fetch input"""
     symbol: str = Field(..., description="Cryptocurrency symbol (e.g., BTC, ETH)")
-    source: str = Field("coingecko", description="Data source (coingecko, binance)")
+    source: str = Field("coinmarketcap", description="Data source (coinmarketcap, binance)")
     days: int = Field(365, description="Number of days of historical data to fetch")
 
     model_config = {
@@ -13,7 +13,7 @@ class DataFetchInput(BaseModel):
         'json_schema_extra': {
             "example": {
                 "symbol": "BTC",
-                "source": "coingecko",
+                "source": "coinmarketcap",
                 "days": 365
             }
         }
@@ -48,7 +48,7 @@ class DataInfo(BaseModel):
         'json_schema_extra': {
             "example": {
                 "symbol": "BTC",
-                "source": "coingecko",
+                "source": "coinmarketcap",
                 "start_date": "2022-01-01T00:00:00",
                 "end_date": "2023-01-01T00:00:00",
                 "rows": 365,
