@@ -3,9 +3,9 @@ import tensorflow as tf
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.layers import (
     Dense, LSTM, GRU, Dropout, BatchNormalization, 
-    Input, Concatenate, Bidirectional, Conv1D, 
-    MaxPooling1D, Attention, MultiHeadAttention, 
-    LayerNormalization, GlobalAveragePooling1D
+    Input, Concatenate, Bidirectional, Conv1D,
+    MaxPooling1D, Attention, MultiHeadAttention,
+    LayerNormalization, GlobalAveragePooling1D, Embedding
 )
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
@@ -198,9 +198,16 @@ class AdvancedModelFactory:
         
         # Define model
         inputs = Input(shape=input_shape)
-        
+
         # Initial projection to embed_dim
         x = Dense(embed_dim)(inputs)
+
+        # Add positional encoding to help the model learn order information
+        positions = tf.range(start=0, limit=input_shape[0], delta=1)
+        pos_embedding = tf.keras.layers.Embedding(input_dim=input_shape[0], output_dim=embed_dim)
+        pos_encoding = pos_embedding(positions)
+        x = x + pos_encoding
+        x = Dropout(dropout_rate)(x)
         
         # Transformer blocks
         for _ in range(num_transformer_blocks):
