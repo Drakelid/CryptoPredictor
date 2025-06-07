@@ -45,7 +45,7 @@ export const DEFAULT_SETTINGS = {
   // Data fetching defaults
   data: {
     defaultCrypto: 'BTC',
-    defaultSource: 'coingecko',
+    defaultSource: 'coinmarketcap',
     defaultDays: 365
   },
   
@@ -79,6 +79,7 @@ export const AVAILABLE_CRYPTOCURRENCIES = [
 
 // Available data sources
 export const AVAILABLE_DATA_SOURCES = [
+  { value: 'coinmarketcap', label: 'CoinMarketCap' },
   { value: 'coingecko', label: 'CoinGecko' },
   { value: 'binance', label: 'Binance' }
 ];
