@@ -26,6 +26,8 @@ class Settings(BaseModel):
     SUPPORTED_MODELS: List[str] = [
         # Basic models
         "lstm", "gru", "xgboost", "lightgbm",
+        # Simple linear regression fallback
+        "linear",
         # Advanced models
         "bidirectional_lstm"
         # Note: The following models are planned but not yet implemented:

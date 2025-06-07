@@ -83,6 +83,9 @@ class PredictionService:
         # Force model_type to lowercase for consistency
         model_type = model_type.lower() if model_type else 'lstm'
 
+        if model_type == 'linear':
+            return self._predict_linear(symbol, horizon, confidence_interval)
+
         # Validate model type
         if model_type not in settings.SUPPORTED_MODELS:
             raise ValueError(f"Unsupported model type: {model_type}. Supported types: {settings.SUPPORTED_MODELS}")
@@ -852,6 +855,76 @@ class PredictionService:
             model_type=model_type,
             prediction_values=result.values,
             prediction_timestamps=[t.isoformat() for t in timestamps],
+            confidence_lower=result.confidence_lower,
+            confidence_upper=result.confidence_upper
+        )
+
+        return result
+
+    def _predict_linear(self, symbol: str, horizon: int, confidence_interval: bool) -> PredictionResult:
+        """Predict future prices using simple linear regression."""
+        df = self.data_service.load_data(symbol=symbol)
+        if df is None:
+            raise ValueError("No data available for prediction")
+
+        try:
+            timestamps = list(df['timestamp']) if isinstance(df, dict) else list(df['timestamp'])
+            prices = list(df.get('close') or df.get('price')) if isinstance(df, dict) else list(df['close'] if 'close' in df else df['price'])
+        except Exception:
+            # Fallback for custom structures
+            timestamps = [row['timestamp'] for row in df]
+            prices = [row.get('close', row.get('price')) for row in df]
+
+        if len(prices) < 2:
+            raise ValueError("Not enough data to make prediction")
+
+        prices = [float(p) for p in prices]
+        x = np.arange(len(prices))
+        slope, intercept = np.polyfit(x, prices, 1)
+
+        sentiment = self.sentiment_service.get_sentiment_for_prediction(symbol)
+        score = sentiment.get('social_sentiment', 0.5)
+        slope *= 1 + (score - 0.5) * settings.SENTIMENT_WEIGHT
+
+        future_x = np.arange(len(prices), len(prices) + horizon)
+        values = (intercept + slope * future_x).tolist()
+
+        try:
+            last_ts = timestamps[-1]
+            if hasattr(last_ts, 'to_pydatetime'):
+                last_dt = last_ts.to_pydatetime()
+            else:
+                last_dt = datetime.fromisoformat(str(last_ts))
+        except Exception:
+            last_dt = datetime.utcnow()
+
+        forecast_dates = [last_dt + timedelta(days=i) for i in range(1, horizon + 1)]
+
+        conf_lower = conf_upper = None
+        if confidence_interval:
+            residuals = [prices[i] - (slope * x[i] + intercept) for i in range(len(prices))]
+            std = float(np.std(residuals))
+            conf_lower = [v - std for v in values]
+            conf_upper = [v + std for v in values]
+
+        prediction_id = str(uuid.uuid4())
+        result = PredictionResult(
+            symbol=symbol,
+            model_type='linear',
+            prediction_date=datetime.utcnow(),
+            horizon=horizon,
+            values=values,
+            timestamps=forecast_dates,
+            confidence_lower=conf_lower,
+            confidence_upper=conf_upper
+        )
+
+        self._save_prediction(result, prediction_id)
+        prediction_feedback_system.store_prediction(
+            symbol=symbol,
+            model_type='linear',
+            prediction_values=result.values,
+            prediction_timestamps=[t.isoformat() for t in forecast_dates],
             confidence_lower=result.confidence_lower,
             confidence_upper=result.confidence_upper
         )
