@@ -21,5 +21,6 @@ describe('Navbar', () => {
       </ChakraProvider>
     )
     expect(screen.getByText(/CryptoPricer/i)).not.toBeNull()
+    expect(screen.getAllByText('API Keys')[0]).not.toBeNull()
   })
 })

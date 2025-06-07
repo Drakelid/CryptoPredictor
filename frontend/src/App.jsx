@@ -13,6 +13,7 @@ import AutoTraining from './pages/AutoTraining'
 import ModelTrainingWithAPI from './components/ModelTrainingWithAPI'
 import SimpleBacktesting from './components/SimpleBacktesting'
 import ErrorBoundary from './components/ErrorBoundary'
+import ApiKeys from './pages/ApiKeys'
 
 // Component to handle route-level error boundaries
 const RouteWithErrorBoundary = ({ component: Component, ...rest }) => {
@@ -43,6 +44,7 @@ function App() {
                 <Route path="/auto-training" element={<RouteWithErrorBoundary component={AutoTraining} />} />
                 <Route path="/models" element={<RouteWithErrorBoundary component={ModelTrainingWithAPI} />} />
                 <Route path="/backtest" element={<RouteWithErrorBoundary component={SimpleBacktesting} />} />
+                <Route path="/api-keys" element={<RouteWithErrorBoundary component={ApiKeys} />} />
               </Routes>
             </Box>
           </Box>

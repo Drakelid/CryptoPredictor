@@ -27,6 +27,10 @@ class SentimentService:
         self.news_api_key = settings.NEWS_API_KEY if hasattr(settings, 'NEWS_API_KEY') else None
         self.twitter_api = "https://api.senticrypt.com/v1/twitter.json"
         self.reddit_api = "https://api.senticrypt.com/v1/reddit.json"
+        self.reddit_user_agent = settings.REDDIT_USER_AGENT
+        self.reddit_client_id = settings.REDDIT_CLIENT_ID
+        self.reddit_client_secret = settings.REDDIT_CLIENT_SECRET
+        self.reddit_search_api = "https://www.reddit.com/search.json"
 
         # Load cached data if available
         self._load_cached_data()
@@ -182,6 +186,25 @@ class SentimentService:
                 "change_24h": 0.0
             }
 
+    def _fetch_reddit_api_sentiment(self, symbol: str) -> float:
+        """Fetch sentiment from Reddit posts using the official API."""
+        try:
+            headers = {"User-Agent": self.reddit_user_agent or "CryptoPricerBot/0.1"}
+            url = f"{self.reddit_search_api}?q={symbol}&limit=25&sort=new"
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                posts = data.get("data", {}).get("children", [])
+                if posts:
+                    text = " ".join(
+                        p["data"].get("title", "") + " " + p["data"].get("selftext", "")
+                        for p in posts
+                    )
+                    return self.analyze_text(text)
+        except Exception as e:  # pragma: no cover - network dependency
+            logger.error(f"Error fetching Reddit API sentiment for {symbol}: {e}")
+        return 0.5
+
     def _fetch_social_sentiment(self, symbol: str):
         """Fetch social media sentiment for a cryptocurrency"""
         try:
@@ -196,16 +219,17 @@ class SentimentService:
             except Exception as e:
                 logger.error(f"Error fetching Twitter sentiment for {symbol}: {str(e)}")
 
-            # Try to fetch Reddit sentiment
-            reddit_sentiment = 0.5
-            try:
-                response = requests.get(f"{self.reddit_api}?symbol={symbol}")
-                if response.status_code == 200:
-                    data = response.json()
-                    if 'sentiment' in data:
-                        reddit_sentiment = float(data['sentiment'])
-            except Exception as e:
-                logger.error(f"Error fetching Reddit sentiment for {symbol}: {str(e)}")
+            # Try to fetch Reddit sentiment via Reddit API
+            reddit_sentiment = self._fetch_reddit_api_sentiment(symbol)
+            if reddit_sentiment == 0.5:
+                try:
+                    response = requests.get(f"{self.reddit_api}?symbol={symbol}")
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'sentiment' in data:
+                            reddit_sentiment = float(data['sentiment'])
+                except Exception as e:
+                    logger.error(f"Error fetching Reddit sentiment for {symbol}: {str(e)}")
 
             # Calculate overall sentiment
             overall = (twitter_sentiment + reddit_sentiment) / 2

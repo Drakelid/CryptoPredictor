@@ -15,6 +15,9 @@ class Settings(BaseModel):
     BINANCE_API_KEY: Optional[str] = None
     BINANCE_API_SECRET: Optional[str] = None
     NEWS_API_KEY: Optional[str] = None  # For CryptoPanic API
+    REDDIT_CLIENT_ID: Optional[str] = None
+    REDDIT_CLIENT_SECRET: Optional[str] = None
+    REDDIT_USER_AGENT: Optional[str] = "CryptoPricerBot/0.1"
 
     # Model settings
     DEFAULT_LOOKBACK_WINDOW: int = 30  # Days for historical data

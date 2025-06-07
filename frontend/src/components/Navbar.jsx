@@ -255,4 +255,8 @@ const NAV_ITEMS = [
     label: 'Backtesting',
     href: '/backtest',
   },
+  {
+    label: 'API Keys',
+    href: '/api-keys',
+  },
 ];

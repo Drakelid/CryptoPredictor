@@ -25,7 +25,7 @@ def setup_dependency_stubs() -> None:
         'xgboost', 'lightgbm', 'optuna', 'backtrader',
         'river', 'faiss', 'faiss_cpu', 'shap',
         'matplotlib', 'matplotlib.pyplot', 'seaborn', 'textblob', 'boruta',
-        'sklearn', 'numpy', 'pandas', 'requests', 'pycoingecko',
+        'sklearn', 'numpy', 'pandas', 'pycoingecko',
         'multipart', 'binance'
     ]
 

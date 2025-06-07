@@ -58,7 +58,7 @@ for module_name in [
     'xgboost', 'lightgbm', 'optuna', 'backtrader',
     'river', 'faiss', 'faiss_cpu', 'shap',
     'matplotlib', 'seaborn', 'schedule', 'textblob', 'boruta',
-    'sklearn', 'numpy', 'pandas', 'requests', 'pycoingecko'
+    'sklearn', 'numpy', 'pandas', 'pycoingecko'
 ]:
     sys.modules.setdefault(module_name, stub_module(module_name))
 
