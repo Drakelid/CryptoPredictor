@@ -29,11 +29,16 @@ class Settings(BaseModel):
         # Simple linear regression fallback
         "linear",
         # Advanced models
-        "bidirectional_lstm"
-        # Note: The following models are planned but not yet implemented:
-        # "attention_lstm", "cnn_lstm", "transformer", "dual_attention",
-        # "ensemble", "stacking", "voting"
+        "bidirectional_lstm",
+        "attention_lstm",
+        "cnn_lstm",
+        "transformer",
+        "dual_attention"
+        # Additional ensemble methods could be added here
     ]
+
+    # Control whether prediction results should be randomly adjusted
+    USE_RANDOM_PRICE_OVERRIDE: bool = False
 
     # Feature engineering
     TECHNICAL_INDICATORS: List[str] = [

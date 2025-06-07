@@ -649,7 +649,7 @@ class PredictionService:
 
             # Force predictions to use the reference price as a base
             # Extract the trend from the predictions but use the reference price as the starting point
-            if len(y_pred_inv) > 1:
+            if len(y_pred_inv) > 1 and settings.USE_RANDOM_PRICE_OVERRIDE:
                 # Calculate percentage changes between predictions
                 pct_changes = np.diff(y_pred_inv) / y_pred_inv[:-1]
 
@@ -658,11 +658,14 @@ class PredictionService:
                 y_pred_inv[0] = reference_price
                 for i in range(1, len(y_pred_inv)):
                     y_pred_inv[i] = y_pred_inv[i-1] * (1 + pct_changes[i-1])
-            else:
-                # If only one prediction, use reference price with a small random change
+            elif len(y_pred_inv) == 1 and settings.USE_RANDOM_PRICE_OVERRIDE:
+                # If only one prediction, optionally use reference price with a small random change
                 y_pred_inv = np.array([reference_price * (1 + np.random.uniform(-0.02, 0.02))])
 
-            logger.info(f"Corrected prediction for {symbol}: ${y_pred_inv[0]:.2f}")
+            if settings.USE_RANDOM_PRICE_OVERRIDE:
+                logger.info(f"Corrected prediction for {symbol}: ${y_pred_inv[0]:.2f}")
+            else:
+                logger.info(f"Using model prediction for {symbol}: ${y_pred_inv[0]:.2f}")
 
             # Generate confidence intervals if requested
             confidence_lower = None
@@ -793,10 +796,15 @@ class PredictionService:
             logger.info(f"Reference price for {symbol}: ${reference_price:.2f}")
             logger.info(f"Raw model prediction for {symbol}: ${y_pred_inv[0]:.2f}")
 
-            # Force predictions to use the reference price as a base
-            y_pred_inv = np.array([reference_price * (1 + np.random.uniform(-0.02, 0.05) * i) for i in range(horizon)])
-
-            logger.info(f"Corrected prediction for {symbol}: ${y_pred_inv[0]:.2f}")
+            # Optionally override predictions with a reference based sequence
+            if settings.USE_RANDOM_PRICE_OVERRIDE:
+                y_pred_inv = np.array([
+                    reference_price * (1 + np.random.uniform(-0.02, 0.05) * i)
+                    for i in range(horizon)
+                ])
+                logger.info(f"Corrected prediction for {symbol}: ${y_pred_inv[0]:.2f}")
+            else:
+                logger.info(f"Using model prediction for {symbol}: ${y_pred_inv[0]:.2f}")
 
             # Generate confidence intervals if requested
             confidence_lower = None
