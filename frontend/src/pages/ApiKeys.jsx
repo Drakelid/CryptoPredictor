@@ -12,7 +12,7 @@ import {
 
 const ApiKeys = () => {
   const [keys, setKeys] = useState({
-    coingecko: '',
+    coinmarketcap: '',
     binanceKey: '',
     binanceSecret: '',
     cryptopanic: '',
@@ -49,11 +49,11 @@ const ApiKeys = () => {
       <Heading mb={5}>API Keys</Heading>
       <Stack spacing={4}>
         <FormControl>
-          <FormLabel>CoinGecko API Key</FormLabel>
+          <FormLabel>CoinMarketCap API Key</FormLabel>
           <Input
-            placeholder="COINGECKO_API_KEY"
-            name="coingecko"
-            value={keys.coingecko}
+            placeholder="COINMARKETCAP_API_KEY"
+            name="coinmarketcap"
+            value={keys.coinmarketcap}
             onChange={handleChange}
           />
         </FormControl>

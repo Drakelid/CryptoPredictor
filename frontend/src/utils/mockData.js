@@ -4,7 +4,7 @@
 export const mockDataInfo = [
   {
     symbol: 'BTC',
-    source: 'coingecko',
+    source: 'coinmarketcap',
     start_date: '2024-04-04',
     end_date: '2025-04-04',
     rows: 365,
@@ -12,7 +12,7 @@ export const mockDataInfo = [
   },
   {
     symbol: 'ETH',
-    source: 'coingecko',
+    source: 'coinmarketcap',
     start_date: '2024-04-04',
     end_date: '2025-04-04',
     rows: 365,

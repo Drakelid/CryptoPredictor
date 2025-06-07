@@ -316,6 +316,58 @@ class RealBinanceFetcher(RealDataFetcher):
     # Synthetic data generation has been removed to ensure only real data is used
 
 
+class RealCoinMarketCapFetcher(RealDataFetcher):
+    """Data fetcher for CoinMarketCap API"""
+
+    def __init__(self):
+        super().__init__()
+        self.base_url = "https://pro-api.coinmarketcap.com/v1"
+        self.api_key = settings.COINMARKETCAP_API_KEY
+
+    def _fetch_data(self, symbol: str, days: int) -> pd.DataFrame:
+        """Fetch data from CoinMarketCap"""
+        end_time = datetime.utcnow()
+        start_time = end_time - timedelta(days=days)
+        url = f"{self.base_url}/cryptocurrency/ohlcv/historical"
+        params = {
+            "symbol": symbol.upper(),
+            "time_start": start_time.strftime("%Y-%m-%d"),
+            "time_end": end_time.strftime("%Y-%m-%d"),
+            "interval": "daily",
+            "convert": "USD",
+        }
+        headers = {}
+        if self.api_key:
+            headers["X-CMC_PRO_API_KEY"] = self.api_key
+        response = requests.get(url, params=params, headers=headers)
+        data = response.json()
+
+        quotes = data.get("data", {}).get("quotes", [])
+        if not quotes:
+            raise ValueError("No data returned from CoinMarketCap")
+
+        records = []
+        for q in quotes:
+            quote = q.get("quote", {}).get("USD", {})
+            records.append(
+                {
+                    "timestamp": q.get("time_open"),
+                    "open": quote.get("open"),
+                    "high": quote.get("high"),
+                    "low": quote.get("low"),
+                    "close": quote.get("close"),
+                    "volume": quote.get("volume"),
+                    "market_cap": quote.get("market_cap"),
+                }
+            )
+
+        df = pd.DataFrame(records)
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df["price"] = df["close"]
+
+        return df
+
+
 def get_real_data_fetcher(source: str) -> RealDataFetcher:
     """
     Get real data fetcher for a source
@@ -326,7 +378,9 @@ def get_real_data_fetcher(source: str) -> RealDataFetcher:
     Returns:
         RealDataFetcher instance
     """
-    if source.lower() == 'coingecko':
+    if source.lower() == 'coinmarketcap':
+        return RealCoinMarketCapFetcher()
+    elif source.lower() == 'coingecko':
         return RealCoinGeckoFetcher()
     elif source.lower() == 'binance':
         return RealBinanceFetcher()

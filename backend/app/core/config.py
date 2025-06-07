@@ -11,6 +11,7 @@ class Settings(BaseModel):
     MODELS_DIR: str = os.path.join(os.getcwd(), "..", "models")
 
     # API Keys (in production, use environment variables)
+    COINMARKETCAP_API_KEY: Optional[str] = None
     COINGECKO_API_KEY: Optional[str] = None
     BINANCE_API_KEY: Optional[str] = None
     BINANCE_API_SECRET: Optional[str] = None

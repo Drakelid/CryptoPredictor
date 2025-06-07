@@ -49,7 +49,7 @@ const pulseAnimation = keyframes`
 
 const DataUpload = () => {
   const [selectedCrypto, setSelectedCrypto] = useState('BTC');
-  const [selectedSource, setSelectedSource] = useState('coingecko');
+  const [selectedSource, setSelectedSource] = useState('coinmarketcap');
   const [days, setDays] = useState(365);
   const [file, setFile] = useState(null);
   const [customSource, setCustomSource] = useState('');

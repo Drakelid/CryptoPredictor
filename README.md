@@ -26,7 +26,7 @@ A full-stack, AI-powered web application for predicting cryptocurrency prices (e
 
 ## 📊 Data Sources & Feature Engineering
 
-- **Historical Data**: CoinGecko / Binance OHLCV prices
+ - **Historical Data**: CoinMarketCap / Binance OHLCV prices
 - **Engineered Features**: Technical indicators like MA, RSI, MACD, Bollinger Bands
 - **Normalization**: All features scaled appropriately
 
