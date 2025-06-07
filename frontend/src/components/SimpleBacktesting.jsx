@@ -71,9 +71,7 @@ const SimpleBacktesting = () => {
       win_rate: 62,
       trades: 45
     }
-  ];
-
-      ]);
+  ]);
     }
   };
 

@@ -66,7 +66,9 @@ class TrainingService:
         use_feature_selection: bool = True,
         use_anomaly_detection: bool = True,
         use_transfer_learning: bool = False,
-        source_symbol: Optional[str] = None
+        source_symbol: Optional[str] = None,
+        use_time_series_cv: bool = False,
+        cv_splits: Optional[int] = None
     ) -> TrainingResult:
         """
         Train a new model with advanced features
@@ -85,6 +87,8 @@ class TrainingService:
             use_anomaly_detection: Whether to detect and handle anomalies
             use_transfer_learning: Whether to use transfer learning
             source_symbol: Source symbol for transfer learning (required if use_transfer_learning=True)
+            use_time_series_cv: Whether to perform time-series cross validation
+            cv_splits: Number of CV splits (defaults to settings.TIME_CV_SPLITS)
 
         Returns:
             TrainingResult object with training information
@@ -174,7 +178,9 @@ class TrainingService:
             raise ValueError(f"Target column '{target_col}' not found in data. Available columns: {df_features.columns.tolist()}")
 
         # Prepare data based on model type
-        if model_type in ['lstm', 'gru']:
+        dl_models = ['lstm', 'gru', 'bidirectional_lstm', 'attention_lstm', 'cnn_lstm', 'transformer', 'dual_attention']
+
+        if model_type in dl_models:
             # Prepare sequences for DL models
             try:
                 logger.info(f"Preparing sequences for {model_type} model with lookback={lookback}, horizon={horizon}")
@@ -254,6 +260,31 @@ class TrainingService:
             # Log the number of features
             logger.info(f"Training model with {n_features} real features")
 
+            cv_mae = None
+            if use_time_series_cv:
+                cv = TimeSeriesCV(n_splits=cv_splits or settings.TIME_CV_SPLITS)
+                scores = []
+                for train_idx, val_idx in cv.split(X_train):
+                    cv_model = get_dl_model(
+                        model_type=model_type,
+                        input_shape=(lookback, n_features),
+                        output_shape=horizon
+                    )
+                    cv_model.train(
+                        X_train[train_idx],
+                        y_train[train_idx],
+                        X_train[val_idx],
+                        y_train[val_idx],
+                        epochs=max(5, (epochs or settings.DEFAULT_EPOCHS) // 2),
+                        batch_size=batch_size or settings.DEFAULT_BATCH_SIZE,
+                        patience=max(1, settings.DEFAULT_PATIENCE // 2)
+                    )
+                    preds = cv_model.predict(X_train[val_idx])
+                    scores.append(float(np.mean(np.abs(y_train[val_idx] - preds))))
+                if scores:
+                    cv_mae = float(np.mean(scores))
+                    logger.info(f"Average CV MAE: {cv_mae:.4f}")
+
             # Create model
             model = get_dl_model(
                 model_type=model_type,
@@ -281,6 +312,9 @@ class TrainingService:
                 'train_loss': float(history['loss'][-1]),
                 'val_loss': float(history['val_loss'][-1])
             }
+
+            if cv_mae is not None:
+                metrics['cv_mae'] = cv_mae
 
             # Add additional metrics if available
             if 'mse' in history:
@@ -351,6 +385,24 @@ class TrainingService:
                     logger.error(f"Unexpected data dimensions: X_train.ndim={X_train.ndim}, y_train.ndim={y_train.ndim}")
                     raise ValueError(f"Unexpected data dimensions. Expected X_train.ndim=2, y_train.ndim=2, got {X_train.ndim} and {y_train.ndim}")
 
+                cv_mae = None
+                if use_time_series_cv:
+                    cv = TimeSeriesCV(n_splits=cv_splits or settings.TIME_CV_SPLITS)
+                    scores = []
+                    for train_idx, val_idx in cv.split(X_train):
+                        cv_model = get_ml_model(model_type=model_type)
+                        cv_model.train(
+                            X_train[train_idx],
+                            y_train[train_idx],
+                            X_train[val_idx],
+                            y_train[val_idx],
+                        )
+                        preds = cv_model.predict(X_train[val_idx])
+                        scores.append(float(np.mean(np.abs(y_train[val_idx] - preds))))
+                    if scores:
+                        cv_mae = float(np.mean(scores))
+                        logger.info(f"Average CV MAE: {cv_mae:.4f}")
+
             except Exception as e:
                 logger.error(f"Error preparing tabular data: {str(e)}")
                 # Log the full traceback for debugging
@@ -374,6 +426,9 @@ class TrainingService:
                 y_val=y_val,
                 params=params
             )
+
+            if cv_mae is not None:
+                metrics['cv_mae'] = cv_mae
 
             # Save model
             model_filename = f"{symbol.lower()}_{model_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"

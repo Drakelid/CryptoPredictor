@@ -3,8 +3,8 @@ import tensorflow as tf
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.layers import (
     Dense, LSTM, GRU, Dropout, BatchNormalization, 
-    Input, Concatenate, Bidirectional, Conv1D, 
-    MaxPooling1D, Attention, MultiHeadAttention, 
+    Input, Concatenate, Bidirectional, Conv1D,
+    MaxPooling1D, Attention, MultiHeadAttention,
     LayerNormalization, GlobalAveragePooling1D
 )
 from tensorflow.keras.optimizers import Adam
@@ -51,6 +51,19 @@ class AdvancedModelFactory:
             return AdvancedModelFactory._create_dual_attention_model(input_shape, output_shape, hyperparams)
         else:
             raise ValueError(f"Unknown advanced model type: {model_type}")
+
+    @staticmethod
+    def _sinusoidal_encoding(seq_len: int, d_model: int) -> tf.Tensor:
+        """Generate sinusoidal positional encoding."""
+        position = tf.cast(tf.range(seq_len)[:, tf.newaxis], tf.float32)
+        div_term = tf.exp(
+            tf.range(0, d_model, 2, dtype=tf.float32)
+            * -(np.log(10000.0) / d_model)
+        )
+        sinusoid = tf.concat(
+            [tf.sin(position * div_term), tf.cos(position * div_term)], axis=1
+        )
+        return tf.expand_dims(sinusoid, 0)
     
     @staticmethod
     def _create_attention_lstm(
@@ -198,9 +211,14 @@ class AdvancedModelFactory:
         
         # Define model
         inputs = Input(shape=input_shape)
-        
+
         # Initial projection to embed_dim
         x = Dense(embed_dim)(inputs)
+
+        # Add sinusoidal positional encoding to help the model learn order information
+        pos_encoding = AdvancedModelFactory._sinusoidal_encoding(input_shape[0], embed_dim)
+        x = x + pos_encoding
+        x = Dropout(dropout_rate)(x)
         
         # Transformer blocks
         for _ in range(num_transformer_blocks):

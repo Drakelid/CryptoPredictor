@@ -34,7 +34,7 @@ import {
 const mockDataInfo = [
   {
     symbol: 'BTC',
-    source: 'coingecko',
+    source: 'coinmarketcap',
     start_date: '2024-04-04',
     end_date: '2025-04-04',
     rows: 365,
@@ -42,7 +42,7 @@ const mockDataInfo = [
   },
   {
     symbol: 'ETH',
-    source: 'coingecko',
+    source: 'coinmarketcap',
     start_date: '2024-04-04',
     end_date: '2025-04-04',
     rows: 365,
@@ -50,7 +50,7 @@ const mockDataInfo = [
   },
   {
     symbol: 'SOL',
-    source: 'coingecko',
+    source: 'coinmarketcap',
     start_date: '2024-04-04',
     end_date: '2025-04-04',
     rows: 365,
@@ -60,7 +60,7 @@ const mockDataInfo = [
 
 const DataManagement = () => {
   const [selectedCrypto, setSelectedCrypto] = useState('BTC');
-  const [selectedSource, setSelectedSource] = useState('coingecko');
+  const [selectedSource, setSelectedSource] = useState('coinmarketcap');
   const [days, setDays] = useState(365);
   const [file, setFile] = useState(null);
   const [customSource, setCustomSource] = useState('');
@@ -258,9 +258,8 @@ const DataManagement = () => {
                       value={selectedSource}
                       onChange={(e) => setSelectedSource(e.target.value)}
                     >
-                      <option value="coingecko">CoinGecko</option>
-                      <option value="binance">Binance</option>
                       <option value="coinmarketcap">CoinMarketCap</option>
+                      <option value="binance">Binance</option>
                     </Select>
                   </FormControl>
 

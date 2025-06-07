@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 import os
 import logging
+import requests
 
 from app.core.config import settings
 from app.utils.real_data_fetchers import get_real_data_fetcher
@@ -168,7 +169,69 @@ class BinanceFetcher(CryptoDataFetcher):
             raise
 
 
-def get_data_fetcher(source: str = "coingecko"):
+class CoinMarketCapFetcher(CryptoDataFetcher):
+    """Fetcher for CoinMarketCap API"""
+
+    def __init__(self, api_key: Optional[str] = None):
+        super().__init__()
+        self.api_key = api_key
+        self.base_url = "https://pro-api.coinmarketcap.com/v1"
+
+    def load_data(
+        self, symbol: str, source: str = "coinmarketcap", days: int = 365
+    ) -> pd.DataFrame:
+        """Load data from CoinMarketCap API"""
+        try:
+            end_time = datetime.utcnow()
+            start_time = end_time - timedelta(days=days)
+            url = f"{self.base_url}/cryptocurrency/ohlcv/historical"
+            params = {
+                "symbol": symbol.upper(),
+                "time_start": start_time.strftime("%Y-%m-%d"),
+                "time_end": end_time.strftime("%Y-%m-%d"),
+                "interval": "daily",
+                "convert": "USD",
+            }
+
+            headers = {}
+            if self.api_key:
+                headers["X-CMC_PRO_API_KEY"] = self.api_key
+
+            response = requests.get(url, params=params, headers=headers)
+            data = response.json()
+
+            quotes = data.get("data", {}).get("quotes", [])
+            if not quotes:
+                raise ValueError("No data returned from CoinMarketCap")
+
+            records = []
+            for q in quotes:
+                quote = q.get("quote", {}).get("USD", {})
+                records.append(
+                    {
+                        "timestamp": q.get("time_open"),
+                        "open": quote.get("open"),
+                        "high": quote.get("high"),
+                        "low": quote.get("low"),
+                        "close": quote.get("close"),
+                        "volume": quote.get("volume"),
+                        "market_cap": quote.get("market_cap"),
+                    }
+                )
+
+            df = pd.DataFrame(records)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df["price"] = df["close"]
+
+            self._save_data(df, symbol, source)
+            return df
+
+        except Exception as e:
+            logger.error(f"Error fetching data from CoinMarketCap: {e}")
+            raise
+
+
+def get_data_fetcher(source: str = "coinmarketcap"):
     """Factory function to get the appropriate data fetcher"""
     # Use real data fetchers
     try:
@@ -180,7 +243,9 @@ def get_data_fetcher(source: str = "coingecko"):
         logger.warning(f"Error getting real data fetcher: {e}. Falling back to synthetic data.")
 
         # Fall back to existing fetchers
-        if source.lower() == "coingecko":
+        if source.lower() == "coinmarketcap":
+            return CoinMarketCapFetcher(api_key=settings.COINMARKETCAP_API_KEY)
+        elif source.lower() == "coingecko":
             return CoinGeckoFetcher(api_key=settings.COINGECKO_API_KEY)
         elif source.lower() == "binance":
             return BinanceFetcher(

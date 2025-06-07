@@ -1,3 +1,7 @@
+# Setup stubs for optional heavy dependencies so the app can start
+from app.utils.dependency_stubs import setup_dependency_stubs
+setup_dependency_stubs()
+
 # Import custom pandas initialization first to fix deprecation warnings
 from app.utils.pandas_init import *
 

@@ -7,7 +7,7 @@ const SimpleDataManagement = () => {
   const mockDataInfo = [
     {
       symbol: 'BTC',
-      source: 'coingecko',
+      source: 'coinmarketcap',
       start_date: '2024-04-04',
       end_date: '2025-04-04',
       rows: 365,
@@ -15,7 +15,7 @@ const SimpleDataManagement = () => {
     },
     {
       symbol: 'ETH',
-      source: 'coingecko',
+      source: 'coinmarketcap',
       start_date: '2024-04-04',
       end_date: '2025-04-04',
       rows: 365,
@@ -23,7 +23,7 @@ const SimpleDataManagement = () => {
     },
     {
       symbol: 'SOL',
-      source: 'coingecko',
+      source: 'coinmarketcap',
       start_date: '2024-04-04',
       end_date: '2025-04-04',
       rows: 365,
@@ -126,7 +126,7 @@ const SimpleDataManagement = () => {
           <div style={{ marginTop: '10px' }}>
             <label htmlFor="source">Data Source:</label>
             <select id="source" style={{ marginLeft: '10px' }}>
-              <option value="coingecko">CoinGecko</option>
+              <option value="coinmarketcap">CoinMarketCap</option>
               <option value="binance">Binance</option>
             </select>
           </div>

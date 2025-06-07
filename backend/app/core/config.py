@@ -11,10 +11,14 @@ class Settings(BaseModel):
     MODELS_DIR: str = os.path.join(os.getcwd(), "..", "models")
 
     # API Keys (in production, use environment variables)
+    COINMARKETCAP_API_KEY: Optional[str] = None
     COINGECKO_API_KEY: Optional[str] = None
     BINANCE_API_KEY: Optional[str] = None
     BINANCE_API_SECRET: Optional[str] = None
     NEWS_API_KEY: Optional[str] = None  # For CryptoPanic API
+    REDDIT_CLIENT_ID: Optional[str] = None
+    REDDIT_CLIENT_SECRET: Optional[str] = None
+    REDDIT_USER_AGENT: Optional[str] = "CryptoPricerBot/0.1"
 
     # Model settings
     DEFAULT_LOOKBACK_WINDOW: int = 30  # Days for historical data
@@ -23,12 +27,19 @@ class Settings(BaseModel):
     SUPPORTED_MODELS: List[str] = [
         # Basic models
         "lstm", "gru", "xgboost", "lightgbm",
+        # Simple linear regression fallback
+        "linear",
         # Advanced models
-        "bidirectional_lstm"
-        # Note: The following models are planned but not yet implemented:
-        # "attention_lstm", "cnn_lstm", "transformer", "dual_attention",
-        # "ensemble", "stacking", "voting"
+        "bidirectional_lstm",
+        "attention_lstm",
+        "cnn_lstm",
+        "transformer",
+        "dual_attention"
+        # Additional ensemble methods could be added here
     ]
+
+    # Control whether prediction results should be randomly adjusted
+    USE_RANDOM_PRICE_OVERRIDE: bool = False
 
     # Feature engineering
     TECHNICAL_INDICATORS: List[str] = [

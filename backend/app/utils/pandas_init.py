@@ -1,9 +1,24 @@
+"""Utility to patch pandas to silence deprecation warnings.
+
+If pandas is not installed, minimal stubs are used so the rest of the
+application can still load. The full functionality that relies on pandas
+will of course be unavailable in that case.
 """
-Custom pandas initialization module to fix deprecation warnings.
-This module should be imported before any other imports that use pandas.
-"""
-import pandas as pd
+
 import functools
+
+try:  # pragma: no cover - optional dependency
+    import pandas as pd  # type: ignore
+    if 'DataFrame' not in pd.__dict__:
+        raise ImportError
+except Exception:  # pragma: no cover - fallback when pandas missing
+    def _pct_change(self, *a, **k):
+        return None
+
+    pd = type('pandas', (), {
+        'Series': type('Series', (), {'pct_change': _pct_change}),
+        'DataFrame': type('DataFrame', (), {'pct_change': _pct_change})
+    })
 
 # Store the original pct_change method
 _original_pct_change = pd.Series.pct_change

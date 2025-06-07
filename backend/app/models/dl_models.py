@@ -3,6 +3,9 @@ from tensorflow.keras.models import Sequential, Model, load_model
 from tensorflow.keras.layers import Dense, LSTM, GRU, Dropout, Input, Bidirectional, Concatenate
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+
+# Import advanced factory for additional architectures
+from app.models.advanced_models import AdvancedModelFactory
 import numpy as np
 import os
 import logging
@@ -443,6 +446,33 @@ class BidirectionalLSTM(DeepLearningModel):
         logger.info(f"Built Bidirectional LSTM model with input shape {self.input_shape} and output shape {self.output_shape}")
 
 
+class AdvancedKerasModel(DeepLearningModel):
+    """Wrapper for advanced architectures provided by ``AdvancedModelFactory``."""
+
+    def __init__(
+        self,
+        model_type: str,
+        input_shape: Tuple[int, int],
+        output_shape: int,
+        params: Optional[Dict[str, Any]] = None,
+        model_path: Optional[str] = None,
+    ) -> None:
+        self._advanced_type = model_type
+        self._params = params or {}
+        super().__init__(
+            model_type=model_type,
+            input_shape=input_shape,
+            output_shape=output_shape,
+            learning_rate=self._params.get("learning_rate", 0.001),
+            model_path=model_path,
+        )
+
+    def _build_model(self) -> None:  # type: ignore[override]
+        self.model = AdvancedModelFactory.create_model(
+            self._advanced_type, self.input_shape, self.output_shape, self._params
+        )
+
+
 def get_dl_model(
     model_type: str = "lstm",
     input_shape: Tuple[int, int] = (30, 10),
@@ -465,9 +495,24 @@ def get_dl_model(
     Returns:
         Initialized model
     """
-    if bidirectional and model_type.lower() == "lstm":
+    model_type_l = model_type.lower()
+
+    if model_type_l == "bidirectional_lstm":
+        bidirectional = True
+        model_type_l = "lstm"
+
+    if model_type_l in ["attention_lstm", "cnn_lstm", "transformer", "dual_attention"]:
+        return AdvancedKerasModel(
+            model_type=model_type_l,
+            input_shape=input_shape,
+            output_shape=output_shape,
+            model_path=model_path,
+            params={"learning_rate": learning_rate},
+        )
+
+    if bidirectional and model_type_l == "lstm":
         return BidirectionalLSTM(
-            model_type=model_type,
+            model_type=model_type_l,
             input_shape=input_shape,
             output_shape=output_shape,
             learning_rate=learning_rate,
@@ -475,7 +520,7 @@ def get_dl_model(
         )
     else:
         return DeepLearningModel(
-            model_type=model_type,
+            model_type=model_type_l,
             input_shape=input_shape,
             output_shape=output_shape,
             learning_rate=learning_rate,
