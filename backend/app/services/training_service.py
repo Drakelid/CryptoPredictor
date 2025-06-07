@@ -178,7 +178,9 @@ class TrainingService:
             raise ValueError(f"Target column '{target_col}' not found in data. Available columns: {df_features.columns.tolist()}")
 
         # Prepare data based on model type
-        if model_type in ['lstm', 'gru']:
+        dl_models = ['lstm', 'gru', 'bidirectional_lstm', 'attention_lstm', 'cnn_lstm', 'transformer', 'dual_attention']
+
+        if model_type in dl_models:
             # Prepare sequences for DL models
             try:
                 logger.info(f"Preparing sequences for {model_type} model with lookback={lookback}, horizon={horizon}")
