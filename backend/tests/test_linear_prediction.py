@@ -66,6 +66,43 @@ sys.modules.setdefault('multipart.multipart', sub_multipart)
 
 sys.modules.setdefault('matplotlib.pyplot', stub_module('matplotlib.pyplot'))
 
+# Provide a minimal numpy stub used by the linear predictor
+np = types.ModuleType('numpy')
+
+class NumArray(list):
+    def __mul__(self, other):
+        return NumArray([x * other for x in self])
+    __rmul__ = __mul__
+    def __add__(self, other):
+        if isinstance(other, (int, float)):
+            return NumArray([x + other for x in self])
+        return NumArray([x + y for x, y in zip(self, other)])
+    __radd__ = __add__
+    def tolist(self):
+        return list(self)
+
+np.ndarray = NumArray
+np.arange = lambda start, stop=None: NumArray(range(start, stop)) if stop is not None else NumArray(range(start))
+
+def _polyfit(x, y, degree):
+    n = len(x)
+    x_mean = sum(x) / n
+    y_mean = sum(y) / n
+    num = sum((x[i] - x_mean) * (y[i] - y_mean) for i in range(n))
+    den = sum((x[i] - x_mean) ** 2 for i in range(n))
+    slope = num / den
+    intercept = y_mean - slope * x_mean
+    return slope, intercept
+
+def _std(arr):
+    mean = sum(arr) / len(arr)
+    variance = sum((a - mean) ** 2 for a in arr) / len(arr)
+    return variance ** 0.5
+
+np.polyfit = _polyfit
+np.std = _std
+sys.modules['numpy'] = np
+
 sys.modules['pycoingecko'].CoinGeckoAPI = object
 sys.modules.setdefault('binance', stub_module('binance'))
 binance_client = stub_module('binance.client')
