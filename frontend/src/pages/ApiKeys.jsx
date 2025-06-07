@@ -84,6 +84,10 @@ const ApiKeys = () => {
             onChange={handleChange}
           />
         </FormControl>
+
+        <Heading size="md" mt={6}>
+          Reddit API Credentials
+        </Heading>
         <FormControl>
           <FormLabel>Reddit Client ID</FormLabel>
           <Input
